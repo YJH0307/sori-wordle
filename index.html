@@ -63,34 +63,6 @@
     .key.present { background: #c9b458; color: #fff; }
     .key.absent  { background: #3a3a3c; color: #fff; }
 
-    /* 모달 */
-    .modal {
-      display: none; position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 100;
-      opacity: 0; transition: opacity 0.4s ease;
-      justify-content: center; align-items: center;
-    }
-    .modal.show { display: flex; opacity: 1; }
-    .modal-content {
-      background: white; color: black;
-      border-radius: 10px; padding: 20px;
-      width: 320px; text-align: center;
-      transform: scale(0.8); transition: transform 0.3s ease;
-      position: relative;
-    }
-    .modal.show .modal-content { transform: scale(1); }
-    .modal-content.dark { background: #2a2a2b; color: #ddd; }
-    .close {
-      position: absolute; top: 10px; right: 15px;
-      font-size: 22px; font-weight: bold; cursor: pointer;
-    }
-    #histogram .bar {
-      background: #6aaa64; height: 20px; margin: 3px 0; color: white;
-      display: inline-block; text-align: right; padding-right: 5px;
-    }
-
     /* 모바일 반응형 */
     @media (max-width: 768px) {
       .cell { width: 42px; height: 42px; font-size: 20px; }
@@ -117,17 +89,6 @@
 
   <div id="keyboard"></div>
 
-  <!-- 통계 모달 -->
-  <div id="statsModal" class="modal">
-    <div id="modalContent" class="modal-content">
-      <span class="close" onclick="closeStats()">&times;</span>
-      <h2>📊 통계</h2>
-      <p id="statsText"></p>
-      <h3>시도 분포</h3>
-      <div id="histogram"></div>
-    </div>
-  </div>
-
   <script>
     // === 테마 ===
     function loadTheme() {
@@ -151,12 +112,18 @@
     const 꼬들이중모음={
       "ㅘ":["ㅗ","ㅏ"],"ㅙ":["ㅗ","ㅐ"],"ㅚ":["ㅗ","ㅣ"],
       "ㅝ":["ㅜ","ㅓ"],"ㅞ":["ㅜ","ㅔ"],"ㅟ":["ㅜ","ㅣ"],
-      "ㅢ":["ㅡ","ㅣ"],
-      "ㅒ":["ㅑ","ㅣ"], "ㅖ":["ㅕ","ㅣ"]
+      "ㅢ":["ㅡ","ㅣ"], "ㅒ":["ㅑ","ㅣ"], "ㅖ":["ㅕ","ㅣ"]
     };
+    const 꼬들이중받침={
+      "ㄳ":["ㄱ","ㅅ"],"ㄵ":["ㄴ","ㅈ"],"ㄶ":["ㄴ","ㅎ"],
+      "ㄺ":["ㄹ","ㄱ"],"ㄻ":["ㄹ","ㅁ"],"ㄼ":["ㄹ","ㅂ"],
+      "ㄽ":["ㄹ","ㅅ"],"ㄾ":["ㄹ","ㅌ"],"ㄿ":["ㄹ","ㅍ"],
+      "ㅀ":["ㄹ","ㅎ"],"ㅄ":["ㅂ","ㅅ"]
+    };
+
     function 분리(ch){
       const code=ch.charCodeAt(0)-0xAC00;
-      if(code<0||code>11171)return[ch];
+      if(code<0||code>11171) return [ch];
       const cho=Math.floor(code/588);
       const jung=Math.floor((code-cho*588)/28);
       const jong=code%28;
@@ -164,14 +131,18 @@
       const jungChar=중성[jung];
       if(꼬들이중모음[jungChar]) res.push(...꼬들이중모음[jungChar]);
       else res.push(jungChar);
-      if(jong!==0) res.push(종성[jong]);
+      if(jong!==0){
+        const jongChar=종성[jong];
+        if(꼬들이중받침[jongChar]) res.push(...꼬들이중받침[jongChar]);
+        else res.push(jongChar);
+      }
       return res;
     }
 
     // === 단어 목록 (Google Sheets + fallback) ===
     const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
     let 단어목록=[];
-    const fallbackWords=["날왈","가나다","한글"];
+    const fallbackWords=["가나다","한글"];
 
     fetch(sheetUrl+"&t="+Date.now())
       .then(r=>r.text())
@@ -193,24 +164,32 @@
     let shiftOn=false;
 
     function initGame(){
-      const start=new Date(2025,0,1),today=new Date();
-      const days=Math.floor((today-start)/(1000*60*60*24));
-      정답=단어목록[days%단어목록.length];
-      정답낱자=[]; for(let ch of 정답)정답낱자.push(...분리(ch));
-
-      board=document.getElementById("board");
-      board.innerHTML="";
-      for(let r=0;r<maxRows;r++){
-        const row=document.createElement("div"); row.className="row";
-        row.style.gridTemplateColumns=`repeat(${정답낱자.length},50px)`;
-        for(let c=0;c<정답낱자.length;c++){
-          const cell=document.createElement("div"); cell.className="cell";
-          row.appendChild(cell);
+      try {
+        const start=new Date(2025,0,1),today=new Date();
+        const days=Math.floor((today-start)/(1000*60*60*24));
+        if (!단어목록 || 단어목록.length === 0) {
+          console.warn("단어목록이 비어 있어 fallback 사용");
+          단어목록=fallbackWords;
         }
-        board.appendChild(row);
-      }
+        정답=단어목록[days%단어목록.length];
+        console.log("오늘 정답:",정답);
+        정답낱자=[]; for(let ch of 정답)정답낱자.push(...분리(ch));
 
-      buildKeyboard();
+        board=document.getElementById("board");
+        board.innerHTML="";
+        for(let r=0;r<maxRows;r++){
+          const row=document.createElement("div"); row.className="row";
+          row.style.gridTemplateColumns=`repeat(${정답낱자.length},50px)`;
+          for(let c=0;c<정답낱자.length;c++){
+            const cell=document.createElement("div"); cell.className="cell";
+            row.appendChild(cell);
+          }
+          board.appendChild(row);
+        }
+        buildKeyboard();
+      } catch(e) {
+        console.error("initGame 오류:", e);
+      }
     }
 
     function buildKeyboard(){
@@ -233,24 +212,16 @@
     }
 
     function handleVirtualKey(k){
-      if (k === "Shift") {
-        shiftOn = !shiftOn;
-        return;
-      }
+      if (k === "Shift") { shiftOn=!shiftOn; return; }
       handleKey(k);
     }
 
     function handleKey(k){
       if(gameOver)return;
-
       if(shiftOn){
         const map={"ㅂ":"ㅃ","ㅈ":"ㅉ","ㄷ":"ㄸ","ㄱ":"ㄲ","ㅅ":"ㅆ"};
-        if(map[k]) {
-          k=map[k];
-          shiftOn=false;
-        }
+        if(map[k]) { k=map[k]; shiftOn=false; }
       }
-
       if(k==="Enter"){
         if(currentCol===정답낱자.length)submitGuess();
       } else if(k==="←"){
@@ -267,7 +238,7 @@
       }
     }
 
-    // ---- 2-pass 판정 ----
+    // ---- 판정 ----
     function submitGuess(){
       const guess낱자=[...currentGuess];
       const L=정답낱자.length;
@@ -279,37 +250,29 @@
 
       const result=new Array(L).fill("absent");
       for(let i=0;i<L;i++){
-        if(guess낱자[i]===정답낱자[i]){
-          result[i]="correct";
-          freq[guess낱자[i]]--;
-        }
+        if(guess낱자[i]===정답낱자[i]){ result[i]="correct"; freq[guess낱자[i]]--; }
       }
       for(let i=0;i<L;i++){
         if(result[i]==="correct")continue;
-        if(freq[guess낱자[i]]>0){
-          result[i]="present"; freq[guess낱자[i]]--;
-        }
+        if(freq[guess낱자[i]]>0){ result[i]="present"; freq[guess낱자[i]]--; }
       }
 
-      const rowData=[];
       for(let i=0;i<L;i++){
         row[i].textContent=guess낱자[i];
         row[i].classList.add(result[i]);
-        rowData.push({letter:guess낱자[i],state:result[i]});
         updateKeyboard(guess낱자[i],result[i]);
       }
-      rowsData[currentRow]=rowData;
 
       if(guess낱자.join("")===정답낱자.join("")){
         setTimeout(()=>alert("정답! 🎉"),100);
-        gameOver=true; document.getElementById("shareBtn").style.display="inline-block";
-        updateStats(true,currentRow+1);
+        gameOver=true;
+        document.getElementById("shareBtn").style.display="inline-block";
       }
       currentRow++; currentCol=0; currentGuess=[];
       if(currentRow>=maxRows&&!gameOver){
         setTimeout(()=>alert(`실패! 정답은 ${정답}`),100);
-        gameOver=true; document.getElementById("shareBtn").style.display="inline-block";
-        updateStats(false);
+        gameOver=true;
+        document.getElementById("shareBtn").style.display="inline-block";
       }
     }
 
@@ -327,37 +290,9 @@
       const todayKey=new Date().toISOString().split("T")[0];
       let txt=`소리워들 ${todayKey}\n`;
       txt+=gameOver?`${currentRow}/${maxRows}\n\n`:`실패\n\n`;
-      rowsData.forEach(row=>{
-        row.forEach(c=>{
-          txt+=c.state==="correct"?"🟩":c.state==="present"?"🟨":"⬛";
-        }); txt+="\n";
-      });
+      console.log(txt);
       navigator.clipboard.writeText(txt).then(()=>alert("결과가 복사되었습니다!"));
     }
-
-    function updateStats(success,tries){
-      const key="sori-wordle-stats";
-      const st=JSON.parse(localStorage.getItem(key))||{games:0,wins:0,losses:0,streak:0,maxStreak:0,distribution:{}};
-      st.games++;
-      if(success){
-        st.wins++; st.streak++; if(st.streak>st.maxStreak)st.maxStreak=st.streak;
-        st.distribution[tries]=(st.distribution[tries]||0)+1;
-      } else { st.losses++; st.streak=0; }
-      localStorage.setItem(key,JSON.stringify(st));
-      setTimeout(()=>showStats(st),600);
-    }
-
-    function showStats(st){
-      const modal=document.getElementById("statsModal");
-      const mc=document.getElementById("modalContent");
-      mc.className="modal-content "+document.body.className;
-      document.getElementById("statsText").innerHTML=
-        `총 게임: ${st.games}<br>승리: ${st.wins} / 패배: ${st.losses}<br>`+
-        `성공률: ${(st.games?(st.wins/st.games*100).toFixed(1):0)}%<br>`+
-        `연속 성공: ${st.streak}<br>최고 연속: ${st.maxStreak}`;
-      const hist=document.getElementById("histogram"); hist.innerHTML="";
-      for(let i=1;i<=6;i++){
-        const cnt=st.distribution[i]||0;
-        hist.innerHTML+=`${i}회: <div class="bar" style="width:${cnt*20+20}px">${cnt||''}</div><br>`;
-      }
-      modal.style.display="flex"; setTimeout(()=>modal.classList.add("show"),20
+  </script>
+</body>
+</html>
