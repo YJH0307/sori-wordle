@@ -223,28 +223,37 @@
       }
     }
 
-    // ---- IME 입력: 낱자 단위 즉시 반영 ----
-    const ime=document.getElementById('imeInput');
-    function focusIME(){ ime.focus(); }
-    window.addEventListener('load', focusIME);
-    document.addEventListener('click', focusIME);
+// ---- IME 입력: 낱자 단위 즉시 반영 (중복 제거) ----
+const ime = document.getElementById('imeInput');
+function focusIME(){ ime.focus(); }
+window.addEventListener('load', focusIME);
+document.addEventListener('click', focusIME);
 
-    ime.addEventListener('compositionstart',()=>{});
-    ime.addEventListener('compositionupdate',()=>{});
-    ime.addEventListener('compositionend',()=>{});
+// 조합 이벤트 무시
+ime.addEventListener('compositionstart', () => {});
+ime.addEventListener('compositionupdate', () => {});
+ime.addEventListener('compositionend', () => {});
 
-    ime.addEventListener('input',(e)=>{
-      const text=ime.value;
-      ime.value='';
-      if(!text) return;
-      for(const ch of text){
-        if(/^[ㄱ-ㅎㅏ-ㅣ]$/.test(ch))handleKey(ch);
-        else if(/^[가-힣]$/.test(ch)){
-          const parts=분리(ch);
-          for(const j of parts)handleKey(j);
-        }
-      }
-    });
+// input 이벤트 → e.data 로 직전 글자만 처리
+ime.addEventListener('input', (e) => {
+  const ch = e.data;  // 직전에 입력된 한 글자
+  ime.value = '';     // 항상 비워주기
+  if (!ch) return;
+
+  if (/^[ㄱ-ㅎㅏ-ㅣ]$/.test(ch)) {
+    handleKey(ch); // 자모 그대로
+  } else if (/^[가-힣]$/.test(ch)) {
+    const parts = 분리(ch); // 완성형은 분리
+    for (const j of parts) handleKey(j);
+  }
+});
+
+// Enter / Backspace는 keydown에서 처리
+document.addEventListener("keydown", (e) => {
+  if (gameOver) return;
+  if (e.key === "Enter") handleKey("Enter");
+  if (e.key === "Backspace") handleKey("←");
+});
 
     document.addEventListener("keydown",e=>{
       if(gameOver)return;
