@@ -1,0 +1,2 @@
+# sori-wordle
+Otomad
