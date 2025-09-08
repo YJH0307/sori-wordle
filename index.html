@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>소리워들</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700;900&display=swap" rel="stylesheet">
   <style>
     body {
@@ -45,9 +46,16 @@
     #keyboard { display: grid; grid-template-rows: repeat(3, 1fr); gap: 5px; width: 100%; max-width: 600px; margin: 20px auto; }
     .key-row { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; }
     .key {
-      padding: 10px 14px; border: 1px solid #ccc; border-radius: 4px;
-      cursor: pointer; font-weight: bold; user-select: none;
-      flex: 1 1 auto; text-align: center;
+      flex: 1 1 9%;
+      min-width: 36px;
+      padding: 14px 0;
+      font-size: 20px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      user-select: none;
     }
     body.light .key { background: #ddd; color: #000; }
     body.dark  .key { background: #444; color: #fff; }
@@ -85,12 +93,12 @@
 
     /* 모바일 반응형 */
     @media (max-width: 768px) {
-      .cell { width: 40px; height: 40px; font-size: 20px; }
-      .key { padding: 12px 8px; font-size: 18px; }
+      .cell { width: 42px; height: 42px; font-size: 20px; }
+      .key { min-width: 34px; padding: 12px 0; font-size: 18px; }
     }
     @media (max-width: 480px) {
       .cell { width: 34px; height: 34px; font-size: 18px; }
-      .key { padding: 10px 6px; font-size: 16px; }
+      .key { min-width: 30px; padding: 10px 0; font-size: 16px; }
     }
   </style>
 </head>
@@ -140,7 +148,12 @@
     const 초성=["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
     const 중성=["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"];
     const 종성=["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
-    const 꼬들이중모음={"ㅘ":["ㅗ","ㅏ"],"ㅙ":["ㅗ","ㅐ"],"ㅚ":["ㅗ","ㅣ"],"ㅝ":["ㅜ","ㅓ"],"ㅞ":["ㅜ","ㅔ"],"ㅟ":["ㅜ","ㅣ"],"ㅢ":["ㅡ","ㅣ"],"ㅖ":["ㅑ","ㅣ"],"ㅒ":["ㅑ","ㅣ"]};
+    const 꼬들이중모음={
+      "ㅘ":["ㅗ","ㅏ"],"ㅙ":["ㅗ","ㅐ"],"ㅚ":["ㅗ","ㅣ"],
+      "ㅝ":["ㅜ","ㅓ"],"ㅞ":["ㅜ","ㅔ"],"ㅟ":["ㅜ","ㅣ"],
+      "ㅢ":["ㅡ","ㅣ"],
+      "ㅒ":["ㅑ","ㅣ"], "ㅖ":["ㅕ","ㅣ"]
+    };
     function 분리(ch){
       const code=ch.charCodeAt(0)-0xAC00;
       if(code<0||code>11171)return[ch];
@@ -149,8 +162,9 @@
       const jong=code%28;
       let res=[초성[cho]];
       const jungChar=중성[jung];
-      if(꼬들이중모음[jungChar])res.push(...꼬들이중모음[jungChar]); else res.push(jungChar);
-      if(jong!==0)res.push(종성[jong]);
+      if(꼬들이중모음[jungChar]) res.push(...꼬들이중모음[jungChar]);
+      else res.push(jungChar);
+      if(jong!==0) res.push(종성[jong]);
       return res;
     }
 
@@ -344,9 +358,4 @@
       setTimeout(()=>{modal.style.display="none";},400);
     }
     function openStats(){
-      const st=JSON.parse(localStorage.getItem("sori-wordle-stats"))||{games:0,wins:0,losses:0,streak:0,maxStreak:0,distribution:{}};
-      showStats(st);
-    }
-  </script>
-</body>
-</html>
+      const st=JSON.parse(localStorage.get
