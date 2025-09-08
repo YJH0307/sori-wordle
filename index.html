@@ -44,14 +44,21 @@
     #shareBtn { display: none; }
 
     /* === 키보드 === */
-    #keyboard { display: grid; gap: 6px; width: 100%; max-width: 500px; margin: 20px auto; }
+    #keyboard {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 20px auto;
+      align-items: center;
+    }
     .key-row {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
+      display: flex;
+      justify-content: center;
       gap: 6px;
     }
     .key {
-      padding: 12px 0;
+      min-width: 36px;
+      padding: 12px 10px;
       font-size: 18px;
       text-align: center;
       border: 1px solid #ccc;
@@ -61,20 +68,17 @@
       user-select: none;
       background: #ddd;
     }
-    .key.wide { grid-column: span 2; } /* 특수 키는 넓게 */
-    .key.active { background: #888; color: #fff; }
-    body.dark .key.active { background: #bbb; color: #000; }
+    .key.correct { background: #6aaa64 !important; color: #fff !important; }
+    .key.present { background: #c9b458 !important; color: #fff !important; }
+    .key.absent  { background: #787c7e !important; color: #fff !important; }
 
     body.light .key { background: #ddd; color: #000; }
     body.dark  .key { background: #444; color: #fff; }
-    .key.correct { background: #6aaa64; color: #fff; }
-    .key.present { background: #c9b458; color: #fff; }
-    .key.absent  { background: #3a3a3c; color: #fff; }
 
     /* 모바일 반응형 */
     @media (max-width: 480px) {
       .cell { width: 36px; height: 36px; font-size: 18px; }
-      .key { font-size: 16px; padding: 10px 0; }
+      .key { font-size: 16px; padding: 10px 8px; }
     }
   </style>
 </head>
@@ -109,17 +113,35 @@
     }
     loadTheme();
 
-    // === 단어 목록 (간단히 고정, 추후 Google Sheets 연동 가능) ===
-    const fallbackWords=["가나다","한글"];
-    let 정답 = fallbackWords[0];
-    let 정답낱자 = [...정답];
+    // === Google Sheets CSV + fallbackWords ===
+    const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
+    let 단어목록=[];
+    const fallbackWords=["날왈","가나다","한글"];
+    let 정답, 정답낱자;
     const maxRows = 6;
     let currentRow=0, currentCol=0, gameOver=false;
     let currentGuess=[];
-    let shiftOn=false;
 
-    // === 보드 초기화 ===
+    fetch(sheetUrl+"&t="+Date.now())
+      .then(r=>r.text())
+      .then(csv=>{
+        단어목록=csv.split("\n").map(s=>s.trim()).filter(Boolean);
+        if(단어목록.length===0) 단어목록=fallbackWords;
+        initGame();
+      })
+      .catch(err=>{
+        console.error("단어 목록 로드 실패:", err);
+        단어목록=fallbackWords;
+        initGame();
+      });
+
+    // === 게임 초기화 ===
     function initGame(){
+      const start=new Date(2025,0,1),today=new Date();
+      const days=Math.floor((today-start)/(1000*60*60*24));
+      정답=단어목록[days % 단어목록.length];
+      정답낱자=[...정답];
+
       const board=document.getElementById("board");
       board.innerHTML="";
       for(let r=0;r<maxRows;r++){
@@ -139,7 +161,7 @@
       const keyboardRows = [
         ["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ","ㅐ","ㅔ"],
         ["ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ"],
-        ["Shift","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","←","Enter"]
+        ["ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","←","Enter"]
       ];
       const keyDiv=document.getElementById("keyboard"); keyDiv.innerHTML="";
       keyboardRows.forEach(rowKeys=>{
@@ -147,8 +169,6 @@
         rowKeys.forEach(k=>{
           const keyBtn=document.createElement("div");
           keyBtn.className="key"; keyBtn.textContent=k;
-          if(k==="Shift") keyBtn.classList.add("shift-key");
-          if(["Enter","Shift","←"].includes(k)) keyBtn.classList.add("wide");
           keyBtn.onclick=()=>handleKey(k);
           rowDiv.appendChild(keyBtn);
         });
@@ -159,21 +179,6 @@
     // === 키 입력 ===
     function handleKey(k){
       if(gameOver) return;
-
-      if(k==="Shift"){
-        shiftOn=!shiftOn;
-        const shiftKey=document.querySelector(".key.shift-key");
-        if(shiftOn) shiftKey.classList.add("active");
-        else shiftKey.classList.remove("active");
-        return;
-      }
-
-      if(shiftOn){
-        const map={"ㅂ":"ㅃ","ㅈ":"ㅉ","ㄷ":"ㄸ","ㄱ":"ㄲ","ㅅ":"ㅆ"};
-        if(map[k]) { k=map[k]; }
-        shiftOn=false;
-        document.querySelector(".key.shift-key").classList.remove("active");
-      }
 
       if(k==="Enter"){
         if(currentCol===정답낱자.length) submitGuess();
@@ -196,15 +201,31 @@
       const guess낱자=[...currentGuess];
       if(guess낱자.length!==정답낱자.length) return;
       const row=document.getElementById("board").children[currentRow].children;
+
+      // Wordle 판정 로직
+      const freq={};
+      for(let i=0;i<정답낱자.length;i++){
+        freq[정답낱자[i]]=(freq[정답낱자[i]]||0)+1;
+      }
+      const result=new Array(정답낱자.length).fill("absent");
       for(let i=0;i<정답낱자.length;i++){
         if(guess낱자[i]===정답낱자[i]){
-          row[i].classList.add("correct");
-        } else if(정답낱자.includes(guess낱자[i])){
-          row[i].classList.add("present");
-        } else {
-          row[i].classList.add("absent");
+          result[i]="correct"; freq[guess낱자[i]]--;
         }
       }
+      for(let i=0;i<정답낱자.length;i++){
+        if(result[i]==="correct") continue;
+        if(freq[guess낱자[i]]>0){
+          result[i]="present"; freq[guess낱자[i]]--;
+        }
+      }
+
+      for(let i=0;i<정답낱자.length;i++){
+        row[i].textContent=guess낱자[i];
+        row[i].classList.add(result[i]);
+        updateKeyboard(guess낱자[i],result[i]);
+      }
+
       if(guess낱자.join("")===정답낱자.join("")){
         alert("정답! 🎉");
         gameOver=true;
@@ -218,12 +239,21 @@
       }
     }
 
+    // === 키보드 색 업데이트 ===
+    function updateKeyboard(letter,state){
+      document.querySelectorAll(".key").forEach(k=>{
+        if(k.textContent===letter){
+          if(state==="correct") k.className="key correct";
+          else if(state==="present" && !k.classList.contains("correct")) k.className="key present";
+          else if(state==="absent" && !k.classList.contains("correct") && !k.classList.contains("present")) k.className="key absent";
+        }
+      });
+    }
+
     // === 공유 ===
     function shareResult(){
       navigator.clipboard.writeText("소리워들 결과").then(()=>alert("결과가 복사되었습니다!"));
     }
-
-    initGame();
   </script>
 </body>
 </html>
