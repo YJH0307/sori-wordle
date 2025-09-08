@@ -5,28 +5,44 @@
   <title>소리워들</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700;900&display=swap" rel="stylesheet">
   <style>
+    body {
+      margin: 0; padding: 20px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-start;
+      min-height: 100vh;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
     body.light { background: #fff; color: #000; }
     body.dark { background: #121213; color: #eee; }
-    h1 { font-family: 'Noto Sans KR', sans-serif; font-size: 48px; font-weight: 900; margin: 20px; }
-    .board { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin: auto; width: max-content; }
+
+    h1 { font-size: 48px; font-weight: 900; margin: 10px; }
+
+    .controls { margin: 10px; text-align: center; }
+    .controls button {
+      font-size: 18px; margin: 0 5px; padding: 8px 14px;
+      border: none; border-radius: 6px; cursor: pointer;
+    }
+
+    body.light .controls button, body.light #shareBtn { background: #eee; color: #000; }
+    body.dark .controls button, body.dark #shareBtn { background: #ddd; color: #000; }
+
+    .board { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin: 20px auto; width: max-content; }
     .row { display: grid; gap: 5px; }
     .cell {
-      width: 50px; height: 50px;
-      border: 2px solid #ccc;
+      width: 50px; height: 50px; border: 2px solid #ccc;
       display: flex; justify-content: center; align-items: center;
       font-size: 25px; font-weight: bold;
     }
-    .correct { background-color: #6aaa64; color: white; }
-    .present { background-color: #c9b458; color: white; }
-    .absent { background-color: #787c7e; color: white; }
-
+    .correct { background: #6aaa64; color: white; }
+    .present { background: #c9b458; color: white; }
+    .absent { background: #787c7e; color: white; }
     body.dark .cell { border-color: #3a3a3c; }
-    body.dark .correct { background-color: #538d4e; }
-    body.dark .present { background-color: #b59f3b; }
-    body.dark .absent { background-color: #3a3a3c; }
+    body.dark .correct { background: #538d4e; }
+    body.dark .present { background: #b59f3b; }
+    body.dark .absent { background: #3a3a3c; }
 
-    .controls { margin: 10px; }
-    .controls button { font-size: 18px; margin: 0 5px; padding: 5px 10px; }
+    #shareBtn { display: none; }
+
     #keyboard { display: grid; grid-template-rows: repeat(3, 1fr); gap: 5px; width: 500px; margin: 20px auto; }
     .key-row { display: flex; justify-content: center; gap: 5px; }
     .key {
@@ -37,20 +53,28 @@
     .key.present { background: #c9b458; color: white; }
     .key.absent { background: #787c7e; color: white; }
 
-    #shareBtn { display: none; }
-    /* 통계 모달 */
+    /* 모달 */
     .modal {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); z-index: 100;
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      opacity: 0; transition: opacity 0.4s ease;
+      justify-content: center; align-items: center;
     }
+    .modal.show { display: flex; opacity: 1; }
     .modal-content {
       background: white; color: black;
-      margin: 10% auto; padding: 20px; border-radius: 8px;
-      width: 320px; text-align: center; position: relative;
+      border-radius: 10px; padding: 20px;
+      width: 320px; text-align: center;
+      transform: scale(0.8); transition: transform 0.3s ease;
+      position: relative;
     }
+    .modal.show .modal-content { transform: scale(1); }
     .modal-content.dark { background: #2a2a2b; color: #ddd; }
-    .modal-content .close {
-      position: absolute; top: 10px; right: 10px; font-size: 24px; cursor: pointer;
+    .close {
+      position: absolute; top: 10px; right: 15px;
+      font-size: 22px; font-weight: bold; cursor: pointer;
     }
     #histogram .bar {
       background: #6aaa64; height: 20px; margin: 3px 0; color: white;
@@ -64,12 +88,13 @@
     <button onclick="openStats()">통계 보기</button>
     <button id="themeBtn" onclick="toggleTheme()">🌙 다크 모드</button>
   </div>
+
   <div class="board" id="board"></div>
+
   <div class="controls">
-    <input type="text" id="guessInput" placeholder="자모 입력 (예: ㅎㅏㄴㄱㅜㄹ)" />
-    <button onclick="submitGuess()">제출</button>
     <button id="shareBtn" onclick="shareResult()">공유하기</button>
   </div>
+
   <div id="keyboard"></div>
 
   <!-- 통계 모달 -->
@@ -84,222 +109,203 @@
   </div>
 
   <script>
-  // === 테마 로드/토글 ===
-  function loadTheme() {
-    const t = localStorage.getItem('sori-wordle-theme') || 'light';
-    document.body.className = t;
-    document.getElementById('themeBtn').textContent =
-      t === 'light' ? '🌙 다크 모드' : '☀️ 라이트 모드';
-  }
-  function toggleTheme() {
-    const cur = document.body.className === 'light' ? 'dark' : 'light';
-    document.body.className = cur;
-    localStorage.setItem('sori-wordle-theme', cur);
+    // === 테마 ===
+    function loadTheme() {
+      const t = localStorage.getItem('sori-wordle-theme') || 'light';
+      document.body.className = t;
+      document.getElementById('themeBtn').textContent =
+        t === 'light' ? '🌙 다크 모드' : '☀️ 라이트 모드';
+    }
+    function toggleTheme() {
+      const cur = document.body.className === 'light' ? 'dark' : 'light';
+      document.body.className = cur;
+      localStorage.setItem('sori-wordle-theme', cur);
+      loadTheme();
+    }
     loadTheme();
-  }
-  loadTheme();
 
-  // === 한글 분리 로직 ===
-  const 초성 = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
-  const 중성 = ["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"];
-  const 종성 = ["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
-  const 꼬들이중모음 = {"ㅘ":["ㅗ","ㅏ"],"ㅙ":["ㅗ","ㅐ"],"ㅚ":["ㅗ","ㅣ"],"ㅝ":["ㅜ","ㅓ"],"ㅞ":["ㅜ","ㅔ"],"ㅟ":["ㅜ","ㅣ"],"ㅢ":["ㅡ","ㅣ"]};
-  function 분리(ch) {
-    const code = ch.charCodeAt(0) - 0xAC00;
-    if (code < 0 || code > 11171) return [ ch ];
-    const cho = Math.floor(code / 588);
-    const jung = Math.floor((code - cho * 588) / 28);
-    const jong = code % 28;
-    let res = [초성[cho]];
-    const jungChar = 중성[jung];
-    if (꼬들이중모음[jungChar]) res.push(...꼬들이중모음[jungChar]);
-    else res.push(jungChar);
-    if (jong !== 0) res.push(종성[jong]);
-    return res;
-  }
-
-  // === Google Sheets CSV 연동 ===
-  const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
-  let 단어목록 = [];
-  fetch(sheetUrl).then(r => r.text()).then(csv => {
-    단어목록 = csv.split('\n').map(s => s.trim()).filter(Boolean);
-    initGame();
-  });
-
-  // === 게임 초기화 ===
-  function initGame() {
-    const start = new Date(2025,0,1), today = new Date();
-    const days = Math.floor((today - start)/(1000*60*60*24));
-    const 정답 = 단어목록[days % 단어목록.length];
-    const 정답낱자 = [];
-    for (let ch of 정답) 정답낱자.push(...분리(ch));
-
-    const maxRows = 6;
-    const board = document.getElementById('board');
-    board.innerHTML = ''; // 초기화
-    for (let r=0; r<maxRows; r++) {
-      const row = document.createElement('div'); row.className='row';
-      row.style.gridTemplateColumns = `repeat(${정답낱자.length},50px)`;
-      for (let c=0; c<정답낱자.length; c++){
-        const cell = document.createElement('div'); cell.className='cell';
-        row.appendChild(cell);
-      }
-      board.appendChild(row);
+    // === 한글 분리 ===
+    const 초성=["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+    const 중성=["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"];
+    const 종성=["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+    const 꼬들이중모음={"ㅘ":["ㅗ","ㅏ"],"ㅙ":["ㅗ","ㅐ"],"ㅚ":["ㅗ","ㅣ"],"ㅝ":["ㅜ","ㅓ"],"ㅞ":["ㅜ","ㅔ"],"ㅟ":["ㅜ","ㅣ"],"ㅢ":["ㅡ","ㅣ"]};
+    function 분리(ch){
+      const code=ch.charCodeAt(0)-0xAC00;
+      if(code<0||code>11171)return[ch];
+      const cho=Math.floor(code/588);
+      const jung=Math.floor((code-cho*588)/28);
+      const jong=code%28;
+      let res=[초성[cho]];
+      const jungChar=중성[jung];
+      if(꼬들이중모음[jungChar])res.push(...꼬들이중모음[jungChar]); else res.push(jungChar);
+      if(jong!==0)res.push(종성[jong]);
+      return res;
     }
 
-    let currentRow = 0, gameOver = false;
-    const keyRows = [["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ"],["ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ"],["Enter","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","←"]];
-    const keyDiv = document.getElementById('keyboard'); keyDiv.innerHTML = '';
-    keyRows.forEach(rowKs => {
-      const kr = document.createElement('div'); kr.className='key-row';
-      rowKs.forEach(k => {
-        const kb = document.createElement('div');
-        kb.className = 'key'; kb.textContent = k;
-        kb.onclick = ()=> handleKey(k);
-        kr.appendChild(kb);
-      });
-      keyDiv.appendChild(kr);
+    // === Google Sheets CSV ===
+    const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
+    let 단어목록=[];
+    fetch(sheetUrl+"&t="+Date.now()).then(r=>r.text()).then(csv=>{
+      단어목록=csv.split("\n").map(s=>s.trim()).filter(Boolean);
+      initGame();
     });
 
-    const statSaved = JSON.parse(localStorage.getItem('sori-wordle-'+today.toISOString().split('T')[0]));
-    const rowsData = statSaved ? statSaved.rows : [];
-    if (statSaved) {
-      currentRow = statSaved.currentRow; gameOver = statSaved.gameOver;
-      rowsData.forEach((rowD,r)=> {
-        const cells = board.children[r].children;
-        rowD.forEach((c,i)=> {
-          cells[i].textContent = c.letter;
-          if (c.state) cells[i].classList.add(c.state);
-          updateKeyboard(c.letter, c.state);
+    // === 게임 ===
+    let 정답,정답낱자,maxRows=6,board;
+    let currentRow=0,currentCol=0,gameOver=false;
+    let rowsData=[],currentGuess=[];
+
+    function initGame(){
+      const start=new Date(2025,0,1),today=new Date();
+      const days=Math.floor((today-start)/(1000*60*60*24));
+      정답=단어목록[days%단어목록.length];
+      정답낱자=[]; for(let ch of 정답)정답낱자.push(...분리(ch));
+
+      board=document.getElementById("board");
+      board.innerHTML="";
+      for(let r=0;r<maxRows;r++){
+        const row=document.createElement("div"); row.className="row";
+        row.style.gridTemplateColumns=`repeat(${정답낱자.length},50px)`;
+        for(let c=0;c<정답낱자.length;c++){
+          const cell=document.createElement("div"); cell.className="cell";
+          row.appendChild(cell);
+        }
+        board.appendChild(row);
+      }
+
+      buildKeyboard();
+    }
+
+    function buildKeyboard(){
+      const keyboardRows=[["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ"],
+                          ["ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ"],
+                          ["Enter","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","←"]];
+      const keyDiv=document.getElementById("keyboard"); keyDiv.innerHTML="";
+      keyboardRows.forEach(rowKeys=>{
+        const rowDiv=document.createElement("div"); rowDiv.className="key-row";
+        rowKeys.forEach(k=>{
+          const keyBtn=document.createElement("div");
+          keyBtn.className="key"; keyBtn.textContent=k;
+          keyBtn.onclick=()=>handleKey(k);
+          rowDiv.appendChild(keyBtn);
         });
+        keyDiv.appendChild(rowDiv);
       });
-      if (gameOver) {
-        document.getElementById('guessInput').disabled = true;
-        document.getElementById('shareBtn').style.display = 'inline-block';
+    }
+
+    function handleKey(k){
+      if(gameOver)return;
+      if(k==="Enter"){
+        if(currentCol===정답낱자.length)submitGuess();
+      } else if(k==="←"){
+        if(currentCol>0){
+          currentCol--; currentGuess.pop();
+          board.children[currentRow].children[currentCol].textContent="";
+        }
+      } else {
+        if(currentCol<정답낱자.length){
+          currentGuess.push(k);
+          board.children[currentRow].children[currentCol].textContent=k;
+          currentCol++;
+        }
       }
     }
 
-    function saveGame() {
-      localStorage.setItem('sori-wordle-'+today.toISOString().split('T')[0],
-        JSON.stringify({currentRow,gameOver,rows: rowsData}));
+    document.addEventListener("keydown",e=>{
+      if(gameOver)return;
+      if(e.key==="Enter")handleKey("Enter");
+      else if(e.key==="Backspace")handleKey("←");
+      else {
+        if(/^[ㄱ-ㅎㅏ-ㅣ]$/.test(e.key))handleKey(e.key);
+      }
+    });
+
+    function submitGuess(){
+      const guess낱자=[...currentGuess];
+      const row=board.children[currentRow].children;
+      const rowData=[];
+      for(let i=0;i<정답낱자.length;i++){
+        const gc=guess낱자[i]; row[i].textContent=gc;
+        let state="absent";
+        if(gc===정답낱자[i])state="correct";
+        else if(정답낱자.includes(gc))state="present";
+        row[i].classList.add(state);
+        rowData.push({letter:gc,state});
+        updateKeyboard(gc,state);
+      }
+      rowsData[currentRow]=rowData;
+
+      if(guess낱자.join("")===정답낱자.join("")){
+        setTimeout(()=>alert("정답! 🎉"),100);
+        gameOver=true; document.getElementById("shareBtn").style.display="inline-block";
+        updateStats(true);
+      }
+      currentRow++; currentCol=0; currentGuess=[];
+      if(currentRow>=maxRows&&!gameOver){
+        setTimeout(()=>alert(`실패! 정답은 ${정답}`),100);
+        gameOver=true; document.getElementById("shareBtn").style.display="inline-block";
+        updateStats(false);
+      }
     }
 
-    function handleKey(k) {
-      const inp = document.getElementById('guessInput');
-      if (k==='Enter') submitGuess();
-      else if (k==='←') inp.value = inp.value.slice(0,-1);
-      else inp.value += k;
-    }
-
-    function updateKeyboard(letter, state) {
-      document.querySelectorAll('.key').forEach(kb => {
-        if (kb.textContent === letter) {
-          if (state==='correct') kb.className='key correct';
-          else if (state==='present' && !kb.classList.contains('correct')) kb.className='key present';
-          else if (state==='absent' && !kb.classList.contains('correct') && !kb.classList.contains('present')) kb.className='key absent';
+    function updateKeyboard(letter,state){
+      document.querySelectorAll(".key").forEach(k=>{
+        if(k.textContent===letter){
+          if(state==="correct")k.className="key correct";
+          else if(state==="present"&&!k.classList.contains("correct"))k.className="key present";
+          else if(state==="absent"&&!k.classList.contains("correct")&&!k.classList.contains("present"))k.className="key absent";
         }
       });
     }
 
-    function submitGuess() {
-      if (gameOver) return;
-      const guess = document.getElementById('guessInput').value.trim();
-      if (!guess) return;
-
-      const guessChars = [];
-      for (let ch of guess) guessChars.push(...분리(ch));
-      if (guessChars.length !== 정답낱자.length) {
-        alert(`낱자 수가 일치하지 않습니다 (${정답낱자.length}칸 필요함).`);
-        return;
-      }
-
-      const cells = board.children[currentRow].children;
-      const rowArr = [];
-      guessChars.forEach((gc, i) => {
-        cells[i].textContent = gc;
-        let st = 'absent';
-        if (gc === 정답낱자[i]) st='correct';
-        else if (정답낱자.includes(gc)) st='present';
-        cells[i].classList.add(st);
-        rowArr.push({ letter: gc, state: st });
-        updateKeyboard(gc, st);
+    function shareResult(){
+      const todayKey=new Date().toISOString().split("T")[0];
+      let txt=`소리워들 ${todayKey}\n`;
+      txt+=gameOver?`${currentRow}/${maxRows}\n\n`:`실패\n\n`;
+      rowsData.forEach(row=>{
+        row.forEach(c=>{
+          txt+=c.state==="correct"?"🟩":c.state==="present"?"🟨":"⬛";
+        }); txt+="\n";
       });
-      rowsData[currentRow] = rowArr;
-
-      if (guessChars.join('') === 정답낱자.join('')) {
-        setTimeout(()=>alert('정답! 🎉'),100);
-        gameOver = true;
-        document.getElementById('guessInput').disabled = true;
-        document.getElementById('shareBtn').style.display='inline-block';
-        updateStats(true);
-      }
-      currentRow++;
-      if (currentRow>=maxRows && !gameOver) {
-        setTimeout(()=>alert(`실패! 정답은 ${정답}`),100);
-        gameOver = true;
-        document.getElementById('guessInput').disabled = true;
-        document.getElementById('shareBtn').style.display='inline-block';
-        updateStats(false);
-      }
-      saveGame();
-      document.getElementById('guessInput').value = '';
+      navigator.clipboard.writeText(txt).then(()=>alert("결과가 복사되었습니다!"));
     }
 
-    function shareResult() {
-      const todayKey = today.toISOString().split('T')[0];
-      let txt = `소리워들 ${todayKey}\n`;
-      txt += gameOver ? `${currentRow}/${maxRows}\n\n` : `실패\n\n`;
-      rowsData.forEach(row => {
-        row.forEach(c => {
-          txt += c.state==='correct' ? '🟩' : c.state==='present' ? '🟨' : '⬛';
-        });
-        txt += '\n';
-      });
-      navigator.clipboard.writeText(txt).then(()=>{
-        alert('결과가 복사되었습니다!');
-      });
-    }
-
-    function updateStats(success) {
-      const key = 'sori-wordle-stats';
-      const st = JSON.parse(localStorage.getItem(key)) || {games:0,wins:0,losses:0,streak:0,maxStreak:0,distribution:{}};
+    function updateStats(success){
+      const key="sori-wordle-stats";
+      const st=JSON.parse(localStorage.getItem(key))||{games:0,wins:0,losses:0,streak:0,maxStreak:0,distribution:{}};
       st.games++;
-      if (success) {
-        st.wins++; st.streak++;
-        if (st.streak > st.maxStreak) st.maxStreak = st.streak;
-        st.distribution[currentRow] = (st.distribution[currentRow]||0)+1;
-      } else {
-        st.losses++; st.streak = 0;
-      }
-      localStorage.setItem(key, JSON.stringify(st));
-      showStats(st);
+      if(success){
+        st.wins++; st.streak++; if(st.streak>st.maxStreak)st.maxStreak=st.streak;
+        st.distribution[currentRow]=(st.distribution[currentRow]||0)+1;
+      } else { st.losses++; st.streak=0; }
+      localStorage.setItem(key,JSON.stringify(st));
+      setTimeout(()=>showStats(st),600);
     }
 
-    function showStats(st) {
-      const modal = document.getElementById('statsModal');
-      const mc = document.getElementById('modalContent');
-      mc.className = 'modal-content '+document.body.className;
-      document.getElementById('statsText').innerHTML =
-        `총 게임: ${st.games}<br>승리: ${st.wins} / 패배: ${st.losses}<br>` +
-        `성공률: ${ (st.games ? (st.wins/st.games*100).toFixed(1) : 0) }%<br>` +
+    function showStats(st){
+      const modal=document.getElementById("statsModal");
+      const mc=document.getElementById("modalContent");
+      mc.className="modal-content "+document.body.className;
+      document.getElementById("statsText").innerHTML=
+        `총 게임: ${st.games}<br>승리: ${st.wins} / 패배: ${st.losses}<br>`+
+        `성공률: ${(st.games?(st.wins/st.games*100).toFixed(1):0)}%<br>`+
         `연속 성공: ${st.streak}<br>최고 연속: ${st.maxStreak}`;
-      const hist = document.getElementById('histogram');
-      hist.innerHTML = '';
-      for (let i=1; i<=6; i++){
-        const cnt = st.distribution[i]||0;
-        hist.innerHTML += `${i}회: ` +
-          `<div class="bar" style="width:${cnt*20+20}px">${cnt||''}</div><br>`;
+      const hist=document.getElementById("histogram"); hist.innerHTML="";
+      for(let i=1;i<=6;i++){
+        const cnt=st.distribution[i]||0;
+        hist.innerHTML+=`${i}회: <div class="bar" style="width:${cnt*20+20}px">${cnt||''}</div><br>`;
       }
-      modal.style.display = 'block';
+      modal.style.display="flex"; setTimeout(()=>modal.classList.add("show"),20);
     }
-
-    function closeStats(){ document.getElementById('statsModal').style.display='none'; }
-
+    function closeStats(){
+      const modal=document.getElementById("statsModal");
+      modal.classList.remove("show");
+      setTimeout(()=>{modal.style.display="none";},400);
+    }
     function openStats(){
-      const st = JSON.parse(localStorage.getItem('sori-wordle-stats')) || {games:0,wins:0,losses:0,streak:0,maxStreak:0,distribution:{}};
+      const st=JSON.parse(localStorage.getItem("sori-wordle-stats"))||{games:0,wins:0,losses:0,streak:0,maxStreak:0,distribution:{}};
       showStats(st);
     }
-  }
   </script>
 </body>
 </html>
