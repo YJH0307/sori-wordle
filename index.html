@@ -223,37 +223,39 @@
       }
     }
 
-    // ---- IME 입력 처리 안정화 ----
-    const ime=document.getElementById('imeInput');
-    function focusIME(){ ime.focus(); }
-    window.addEventListener('load', focusIME);
-    document.addEventListener('click', focusIME);
-    let composing=false;
+// ---- IME 입력: 낱자 단위 즉시 반영 ----
+const ime = document.getElementById('imeInput');
+function focusIME(){ ime.focus(); }
+window.addEventListener('load', focusIME);
+document.addEventListener('click', focusIME);
 
-    ime.addEventListener('compositionstart',()=>{composing=true;});
-    ime.addEventListener('compositionend',(e)=>{
-      composing=false;
-      if(e.data)processIME(e.data);
-      ime.value='';
-    });
-    ime.addEventListener('input',(e)=>{
-      if(composing)return;
-      const text=e.data||e.target.value;
-      if(text)processIME(text);
-      ime.value='';
-    });
+// 조합 이벤트는 무시
+ime.addEventListener('compositionstart', () => {});
+ime.addEventListener('compositionupdate', () => {});
+ime.addEventListener('compositionend', () => {});
 
-    function processIME(text){
-      if(gameOver)return;
-      for(const ch of text){
-        if(/^[ㄱ-ㅎㅏ-ㅣ]$/.test(ch))handleKey(ch);
-        else if(/^[가-힣]$/.test(ch)){
-          const parts=분리(ch);
-          for(const j of parts)handleKey(j);
-        }
-      }
+// input 이벤트가 들어올 때마다 낱자 처리
+ime.addEventListener('input', (e) => {
+  const text = ime.value;
+  ime.value = ''; // 매번 비워서 중복 방지
+  if (!text) return;
+
+  for (const ch of text) {
+    if (/^[ㄱ-ㅎㅏ-ㅣ]$/.test(ch)) {
+      handleKey(ch);  // 자모 그대로
+    } else if (/^[가-힣]$/.test(ch)) {
+      const parts = 분리(ch);  // 완성형은 분리
+      for (const j of parts) handleKey(j);
     }
+  }
+});
 
+// Enter / Backspace는 keydown으로 처리
+document.addEventListener("keydown", (e) => {
+  if (gameOver) return;
+  if (e.key === "Enter") handleKey("Enter");
+  if (e.key === "Backspace") handleKey("←");
+});
     document.addEventListener("keydown",e=>{
       if(gameOver)return;
       if(e.key==="Enter")handleKey("Enter");
