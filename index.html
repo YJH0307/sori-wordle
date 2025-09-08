@@ -22,6 +22,7 @@
     .controls button {
       font-size: 16px; margin: 0 5px; padding: 8px 14px;
       border: none; border-radius: 6px; cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif; font-weight: 700;
     }
     body.light .controls button, body.light #shareBtn { background: #eee; color: #000; }
     body.dark  .controls button, body.dark #shareBtn { background: #ddd; color: #000; }
@@ -32,6 +33,7 @@
       width: 45px; height: 45px; border: 2px solid #ccc;
       display: flex; justify-content: center; align-items: center;
       font-size: 22px; font-weight: bold;
+      font-family: 'Noto Sans KR', sans-serif;
     }
     .correct { background: #6aaa64; color: white; }
     .present { background: #c9b458; color: white; }
@@ -71,6 +73,7 @@
       user-select: none;
       background: #ddd;
       display: flex; justify-content: center; align-items: center;
+      font-family: 'Noto Sans KR', sans-serif;
     }
     .key.correct { background: #6aaa64 !important; color: #fff !important; }
     .key.present { background: #c9b458 !important; color: #fff !important; }
@@ -78,6 +81,8 @@
 
     body.light .key { background: #ddd; color: #000; }
     body.dark  .key { background: #444; color: #fff; }
+
+    .key.wide { flex: 1.5; }
 
     /* 팝업 */
     .popup {
@@ -88,17 +93,18 @@
     .popup.hidden { display: none; }
     .popup-content {
       background: white; padding: 20px; border-radius: 8px;
-      text-align: center; max-width: 300px;
+      text-align: center; max-width: 320px; width: 80%;
       animation: fadeIn 0.6s ease;
+      font-family: 'Noto Sans KR', sans-serif;
     }
-    .popup-content h2 { margin-top: 0; }
+    .popup-content h2 { margin-top: 0; font-weight: 900; }
     #popup-close { float: right; cursor: pointer; font-size: 20px; }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
-    /* 모바일 반응형 */
+    /* 모바일 */
     @media (max-width: 480px) {
-      .cell { width: 36px; height: 36px; font-size: 18px; }
-      .key { font-size: 16px; }
+      .cell { width: 34px; height: 34px; font-size: 18px; }
+      .key { font-size: 15px; }
     }
   </style>
 </head>
@@ -146,24 +152,18 @@
     const 초성=["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
     const 중성=["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"];
     const 종성=["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
-
     const 꼬들이중모음={ "ㅘ":["ㅗ","ㅏ"],"ㅙ":["ㅗ","ㅐ"],"ㅚ":["ㅗ","ㅣ"],"ㅝ":["ㅜ","ㅓ"],"ㅞ":["ㅜ","ㅔ"],"ㅟ":["ㅜ","ㅣ"],"ㅢ":["ㅡ","ㅣ"],"ㅒ":["ㅑ","ㅣ"],"ㅖ":["ㅕ","ㅣ"] };
     const 꼬들이중받침={ "ㄳ":["ㄱ","ㅅ"],"ㄵ":["ㄴ","ㅈ"],"ㄶ":["ㄴ","ㅎ"],"ㄺ":["ㄹ","ㄱ"],"ㄻ":["ㄹ","ㅁ"],"ㄼ":["ㄹ","ㅂ"],"ㄽ":["ㄹ","ㅅ"],"ㄾ":["ㄹ","ㅌ"],"ㄿ":["ㄹ","ㅍ"],"ㅀ":["ㄹ","ㅎ"],"ㅄ":["ㅂ","ㅅ"] };
-
     function 분리(ch){
       const code=ch.charCodeAt(0)-0xAC00;
       if(code<0||code>11171) return [ch];
-      const cho=Math.floor(code/588);
-      const jung=Math.floor((code-cho*588)/28);
-      const jong=code%28;
+      const cho=Math.floor(code/588), jung=Math.floor((code-cho*588)/28), jong=code%28;
       let res=[초성[cho]];
       const jungChar=중성[jung];
-      if(꼬들이중모음[jungChar]) res.push(...꼬들이중모음[jungChar]);
-      else res.push(jungChar);
+      if(꼬들이중모음[jungChar]) res.push(...꼬들이중모음[jungChar]); else res.push(jungChar);
       if(jong!==0){
         const jongChar=종성[jong];
-        if(꼬들이중받침[jongChar]) res.push(...꼬들이중받침[jongChar]);
-        else res.push(jongChar);
+        if(꼬들이중받침[jongChar]) res.push(...꼬들이중받침[jongChar]); else res.push(jongChar);
       }
       return res;
     }
@@ -172,17 +172,28 @@
     const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
     let 단어목록=[]; const fallbackWords=["날왈","가나다","한글"];
     let 정답, 정답낱자;
-    const maxRows = 6;
+    const maxRows=6;
     let currentRow=0, currentCol=0, gameOver=false;
     let currentGuess=[];
 
+    // === 통계 ===
+    function updateStats(win, tries){
+      const stats=JSON.parse(localStorage.getItem("sori-stats")||'{"played":0,"wins":0,"dist":[0,0,0,0,0,0]}');
+      stats.played++;
+      if(win){ stats.wins++; stats.dist[tries-1]++; }
+      localStorage.setItem("sori-stats", JSON.stringify(stats));
+    }
+    function getStats(){
+      return JSON.parse(localStorage.getItem("sori-stats")||'{"played":0,"wins":0,"dist":[0,0,0,0,0,0]}');
+    }
+
     // === 하루 1번 제한 ===
     function alreadyPlayedToday(){
-      const today = new Date().toISOString().slice(0,10);
+      const today=new Date().toISOString().slice(0,10);
       return localStorage.getItem("played-"+today);
     }
     function markPlayedToday(){
-      const today = new Date().toISOString().slice(0,10);
+      const today=new Date().toISOString().slice(0,10);
       localStorage.setItem("played-"+today,"true");
     }
 
@@ -194,7 +205,7 @@
         initGame();
       })
       .catch(err=>{
-        console.error("단어 목록 로드 실패:", err);
+        console.error("단어 목록 로드 실패:",err);
         단어목록=fallbackWords; initGame();
       });
 
@@ -204,8 +215,7 @@
       const days=Math.floor((today-start)/(1000*60*60*24));
       정답=단어목록[days % 단어목록.length];
       정답낱자=[]; for(let ch of 정답) 정답낱자.push(...분리(ch));
-
-      if(alreadyPlayedToday()){ showPopup("오늘은 이미 플레이 하셨습니다!"); return; }
+      if(alreadyPlayedToday()){ showPopup("오늘은 이미 플레이 하셨습니다!"); gameOver=true; return; }
 
       const board=document.getElementById("board"); board.innerHTML="";
       for(let r=0;r<maxRows;r++){
@@ -222,15 +232,13 @@
 
     // === 키보드 ===
     function buildKeyboard(){
-      const keyboardRows=[
-        ["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ","ㅐ","ㅔ"],
-        ["ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ"],
-        ["입력","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","삭제"]
-      ];
+      const rows=[["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅆ","ㅛ","ㅕ","ㅑ","ㅐ","ㅔ"],
+                  ["ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ"],
+                  ["입력","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","삭제"]];
       const keyDiv=document.getElementById("keyboard"); keyDiv.innerHTML="";
-      keyboardRows.forEach(rowKeys=>{
+      rows.forEach(row=>{
         const rowDiv=document.createElement("div"); rowDiv.className="key-row";
-        rowKeys.forEach(k=>{
+        row.forEach(k=>{
           const keyBtn=document.createElement("div");
           keyBtn.className="key"; keyBtn.textContent=k;
           if(k==="입력"||k==="삭제") keyBtn.classList.add("wide");
@@ -244,13 +252,10 @@
     // === 키 입력 ===
     function handleKey(k){
       if(gameOver) return;
-      if(k==="입력"){
-        if(currentCol===정답낱자.length) submitGuess();
-      } else if(k==="삭제"){
-        if(currentCol>0){
-          currentCol--; currentGuess.pop();
-          document.getElementById("board").children[currentRow].children[currentCol].textContent="";
-        }
+      if(k==="입력"){ if(currentCol===정답낱자.length) submitGuess(); }
+      else if(k==="삭제"){
+        if(currentCol>0){ currentCol--; currentGuess.pop();
+          document.getElementById("board").children[currentRow].children[currentCol].textContent=""; }
       } else {
         if(currentCol<정답낱자.length){
           currentGuess.push(k);
@@ -262,20 +267,17 @@
 
     // === 제출 ===
     function submitGuess(){
-      const guess낱자=[...currentGuess];
-      if(guess낱자.length!==정답낱자.length) return;
+      const guess=[...currentGuess]; if(guess.length!==정답낱자.length) return;
       const row=document.getElementById("board").children[currentRow].children;
-
       const freq={}; for(let i=0;i<정답낱자.length;i++) freq[정답낱자[i]]=(freq[정답낱자[i]]||0)+1;
       const result=new Array(정답낱자.length).fill("absent");
-      for(let i=0;i<정답낱자.length;i++){ if(guess낱자[i]===정답낱자[i]){ result[i]="correct"; freq[guess낱자[i]]--; } }
-      for(let i=0;i<정답낱자.length;i++){ if(result[i]==="correct") continue; if(freq[guess낱자[i]]>0){ result[i]="present"; freq[guess낱자[i]]--; } }
+      for(let i=0;i<정답낱자.length;i++){ if(guess[i]===정답낱자[i]){ result[i]="correct"; freq[guess[i]]--; } }
+      for(let i=0;i<정답낱자.length;i++){ if(result[i]==="correct") continue; if(freq[guess[i]]>0){ result[i]="present"; freq[guess[i]]--; } }
+      for(let i=0;i<정답낱자.length;i++){ row[i].textContent=guess[i]; row[i].classList.add(result[i]); updateKeyboard(guess[i],result[i]); }
 
-      for(let i=0;i<정답낱자.length;i++){ row[i].textContent=guess낱자[i]; row[i].classList.add(result[i]); updateKeyboard(guess낱자[i],result[i]); }
-
-      if(guess낱자.join("")===정답낱자.join("")){ gameOver=true; markPlayedToday(); setTimeout(()=>showPopup("정답! 🎉"),600); }
+      if(guess.join("")===정답낱자.join("")){ gameOver=true; markPlayedToday(); updateStats(true,currentRow+1); setTimeout(()=>showPopup("정답! 🎉 ("+(currentRow+1)+"/6)"),600); }
       currentRow++; currentCol=0; currentGuess=[];
-      if(currentRow>=maxRows && !gameOver){ gameOver=true; markPlayedToday(); setTimeout(()=>showPopup("실패! 정답은 "+정답),600); }
+      if(currentRow>=maxRows && !gameOver){ gameOver=true; markPlayedToday(); updateStats(false,0); setTimeout(()=>showPopup("실패! 정답은 "+정답),600); }
     }
 
     // === 키보드 색 업데이트 ===
@@ -290,10 +292,7 @@
     }
 
     // === 팝업 ===
-    function showPopup(msg){
-      document.getElementById("popup-message").textContent=msg;
-      document.getElementById("popup").classList.remove("hidden");
-    }
+    function showPopup(msg){ document.getElementById("popup-message").textContent=msg; document.getElementById("popup").classList.remove("hidden"); }
     document.getElementById("popup-close").onclick=()=>{ document.getElementById("popup").classList.add("hidden"); };
 
     // === 공유 ===
@@ -311,8 +310,13 @@
       navigator.clipboard.writeText(output).then(()=>alert("결과가 복사되었습니다!"));
     }
 
-    // === 통계 버튼 ===
-    document.getElementById("statsBtn").onclick=()=>{ showPopup("통계 기능은 추후 추가 예정입니다."); };
+    // === 통계 보기 ===
+    document.getElementById("statsBtn").onclick=()=>{
+      const s=getStats();
+      let msg=`플레이: ${s.played}\n승리: ${s.wins}\n승률: ${s.played?Math.round(s.wins/s.played*100):0}%\n\n시도 분포:\n`;
+      s.dist.forEach((v,i)=>{ msg+=`${i+1}회: ${v}\n`; });
+      showPopup(msg);
+    };
   </script>
 </body>
 </html>
