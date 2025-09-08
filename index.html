@@ -22,9 +22,8 @@
       font-size: 18px; margin: 0 5px; padding: 8px 14px;
       border: none; border-radius: 6px; cursor: pointer;
     }
-
     body.light .controls button, body.light #shareBtn { background: #eee; color: #000; }
-    body.dark .controls button, body.dark #shareBtn { background: #ddd; color: #000; }
+    body.dark  .controls button, body.dark #shareBtn { background: #ddd; color: #000; }
 
     .board { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin: 20px auto; width: max-content; }
     .row { display: grid; gap: 5px; }
@@ -35,11 +34,11 @@
     }
     .correct { background: #6aaa64; color: white; }
     .present { background: #c9b458; color: white; }
-    .absent { background: #787c7e; color: white; }
+    .absent  { background: #787c7e; color: white; }
     body.dark .cell { border-color: #3a3a3c; }
     body.dark .correct { background: #538d4e; }
     body.dark .present { background: #b59f3b; }
-    body.dark .absent { background: #3a3a3c; }
+    body.dark .absent  { background: #3a3a3c; }
 
     #shareBtn { display: none; }
 
@@ -47,11 +46,13 @@
     .key-row { display: flex; justify-content: center; gap: 5px; }
     .key {
       padding: 10px 14px; border: 1px solid #ccc; border-radius: 4px;
-      cursor: pointer; font-weight: bold; background: #ddd; user-select: none;
+      cursor: pointer; font-weight: bold; user-select: none;
     }
-    .key.correct { background: #6aaa64; color: white; }
-    .key.present { background: #c9b458; color: white; }
-    .key.absent { background: #787c7e; color: white; }
+    body.light .key { background: #ddd; color: #000; }
+    body.dark  .key { background: #444; color: #fff; }
+    .key.correct { background: #6aaa64; color: #fff; }
+    .key.present { background: #c9b458; color: #fff; }
+    .key.absent  { background: #3a3a3c; color: #fff; }
 
     /* 모달 */
     .modal {
@@ -80,6 +81,12 @@
       background: #6aaa64; height: 20px; margin: 3px 0; color: white;
       display: inline-block; text-align: right; padding-right: 5px;
     }
+
+    /* 숨김 input (IME 입력용) */
+    #imeInput {
+      position: absolute; opacity: 0; pointer-events: none;
+      width: 0; height: 0;
+    }
   </style>
 </head>
 <body class="light">
@@ -96,6 +103,9 @@
   </div>
 
   <div id="keyboard"></div>
+
+  <!-- IME 입력용 숨김 input -->
+  <input id="imeInput" autocomplete="off" autocapitalize="off" spellcheck="false" />
 
   <!-- 통계 모달 -->
   <div id="statsModal" class="modal">
@@ -211,13 +221,26 @@
       }
     }
 
+    // ---- IME 입력 처리 ----
+    const ime = document.getElementById('imeInput');
+    function focusIME(){ ime.focus(); }
+    window.addEventListener('load', focusIME);
+    document.addEventListener('click', focusIME);
+    ime.addEventListener('input',()=>{
+      if(gameOver){ ime.value=''; return; }
+      const text=ime.value; ime.value='';
+      for(const ch of text){
+        if(/^[ㄱ-ㅎㅏ-ㅣ]$/.test(ch)){ handleKey(ch); continue; }
+        if(/^[가-힣]$/.test(ch)){
+          const parts=분리(ch);
+          for(const j of parts)handleKey(j);
+        }
+      }
+    });
     document.addEventListener("keydown",e=>{
       if(gameOver)return;
       if(e.key==="Enter")handleKey("Enter");
-      else if(e.key==="Backspace")handleKey("←");
-      else {
-        if(/^[ㄱ-ㅎㅏ-ㅣ]$/.test(e.key))handleKey(e.key);
-      }
+      if(e.key==="Backspace")handleKey("←");
     });
 
     function submitGuess(){
@@ -238,7 +261,7 @@
       if(guess낱자.join("")===정답낱자.join("")){
         setTimeout(()=>alert("정답! 🎉"),100);
         gameOver=true; document.getElementById("shareBtn").style.display="inline-block";
-        updateStats(true);
+        updateStats(true,currentRow+1); // ✅ 시도 횟수 정확히 반영
       }
       currentRow++; currentCol=0; currentGuess=[];
       if(currentRow>=maxRows&&!gameOver){
@@ -270,13 +293,13 @@
       navigator.clipboard.writeText(txt).then(()=>alert("결과가 복사되었습니다!"));
     }
 
-    function updateStats(success){
+    function updateStats(success,tries){
       const key="sori-wordle-stats";
       const st=JSON.parse(localStorage.getItem(key))||{games:0,wins:0,losses:0,streak:0,maxStreak:0,distribution:{}};
       st.games++;
       if(success){
         st.wins++; st.streak++; if(st.streak>st.maxStreak)st.maxStreak=st.streak;
-        st.distribution[currentRow]=(st.distribution[currentRow]||0)+1;
+        st.distribution[tries]=(st.distribution[tries]||0)+1;
       } else { st.losses++; st.streak=0; }
       localStorage.setItem(key,JSON.stringify(st));
       setTimeout(()=>showStats(st),600);
