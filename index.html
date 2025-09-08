@@ -50,15 +50,18 @@
       gap: 6px;
       margin: 20px auto;
       align-items: center;
+      width: 100%;
+      max-width: 500px;
     }
     .key-row {
       display: flex;
       justify-content: center;
       gap: 6px;
+      width: 100%;
     }
     .key {
-      min-width: 36px;
-      padding: 12px 10px;
+      flex: 1;
+      aspect-ratio: 1/1;
       font-size: 18px;
       text-align: center;
       border: 1px solid #ccc;
@@ -67,6 +70,7 @@
       font-weight: bold;
       user-select: none;
       background: #ddd;
+      display: flex; justify-content: center; align-items: center;
     }
     .key.correct { background: #6aaa64 !important; color: #fff !important; }
     .key.present { background: #c9b458 !important; color: #fff !important; }
@@ -75,17 +79,33 @@
     body.light .key { background: #ddd; color: #000; }
     body.dark  .key { background: #444; color: #fff; }
 
+    /* 팝업 */
+    .popup {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); display: flex;
+      justify-content: center; align-items: center;
+    }
+    .popup.hidden { display: none; }
+    .popup-content {
+      background: white; padding: 20px; border-radius: 8px;
+      text-align: center; max-width: 300px;
+      animation: fadeIn 0.6s ease;
+    }
+    .popup-content h2 { margin-top: 0; }
+    #popup-close { float: right; cursor: pointer; font-size: 20px; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
     /* 모바일 반응형 */
     @media (max-width: 480px) {
       .cell { width: 36px; height: 36px; font-size: 18px; }
-      .key { font-size: 16px; padding: 10px 8px; }
+      .key { font-size: 16px; }
     }
   </style>
 </head>
 <body class="light">
   <h1>소리워들</h1>
   <div class="controls">
-    <button onclick="alert('통계 보기 준비중')">통계 보기</button>
+    <button id="statsBtn">통계 보기</button>
     <button id="themeBtn" onclick="toggleTheme()">🌙 다크 모드</button>
   </div>
 
@@ -96,6 +116,15 @@
   </div>
 
   <div id="keyboard"></div>
+
+  <!-- 팝업 -->
+  <div id="popup" class="popup hidden">
+    <div class="popup-content">
+      <span id="popup-close">×</span>
+      <h2>오늘의 소리워들</h2>
+      <p id="popup-message"></p>
+    </div>
+  </div>
 
   <script>
     // === 테마 ===
@@ -118,17 +147,8 @@
     const 중성=["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"];
     const 종성=["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
 
-    const 꼬들이중모음={
-      "ㅘ":["ㅗ","ㅏ"],"ㅙ":["ㅗ","ㅐ"],"ㅚ":["ㅗ","ㅣ"],
-      "ㅝ":["ㅜ","ㅓ"],"ㅞ":["ㅜ","ㅔ"],"ㅟ":["ㅜ","ㅣ"],
-      "ㅢ":["ㅡ","ㅣ"],"ㅒ":["ㅑ","ㅣ"],"ㅖ":["ㅕ","ㅣ"]
-    };
-    const 꼬들이중받침={
-      "ㄳ":["ㄱ","ㅅ"],"ㄵ":["ㄴ","ㅈ"],"ㄶ":["ㄴ","ㅎ"],
-      "ㄺ":["ㄹ","ㄱ"],"ㄻ":["ㄹ","ㅁ"],"ㄼ":["ㄹ","ㅂ"],
-      "ㄽ":["ㄹ","ㅅ"],"ㄾ":["ㄹ","ㅌ"],"ㄿ":["ㄹ","ㅍ"],
-      "ㅀ":["ㄹ","ㅎ"],"ㅄ":["ㅂ","ㅅ"]
-    };
+    const 꼬들이중모음={ "ㅘ":["ㅗ","ㅏ"],"ㅙ":["ㅗ","ㅐ"],"ㅚ":["ㅗ","ㅣ"],"ㅝ":["ㅜ","ㅓ"],"ㅞ":["ㅜ","ㅔ"],"ㅟ":["ㅜ","ㅣ"],"ㅢ":["ㅡ","ㅣ"],"ㅒ":["ㅑ","ㅣ"],"ㅖ":["ㅕ","ㅣ"] };
+    const 꼬들이중받침={ "ㄳ":["ㄱ","ㅅ"],"ㄵ":["ㄴ","ㅈ"],"ㄶ":["ㄴ","ㅎ"],"ㄺ":["ㄹ","ㄱ"],"ㄻ":["ㄹ","ㅁ"],"ㄼ":["ㄹ","ㅂ"],"ㄽ":["ㄹ","ㅅ"],"ㄾ":["ㄹ","ㅌ"],"ㄿ":["ㄹ","ㅍ"],"ㅀ":["ㄹ","ㅎ"],"ㅄ":["ㅂ","ㅅ"] };
 
     function 분리(ch){
       const code=ch.charCodeAt(0)-0xAC00;
@@ -148,14 +168,23 @@
       return res;
     }
 
-    // === Google Sheets CSV + fallbackWords ===
+    // === 데이터 ===
     const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
-    let 단어목록=[];
-    const fallbackWords=["날왈","가나다","한글"];
+    let 단어목록=[]; const fallbackWords=["날왈","가나다","한글"];
     let 정답, 정답낱자;
     const maxRows = 6;
     let currentRow=0, currentCol=0, gameOver=false;
     let currentGuess=[];
+
+    // === 하루 1번 제한 ===
+    function alreadyPlayedToday(){
+      const today = new Date().toISOString().slice(0,10);
+      return localStorage.getItem("played-"+today);
+    }
+    function markPlayedToday(){
+      const today = new Date().toISOString().slice(0,10);
+      localStorage.setItem("played-"+today,"true");
+    }
 
     fetch(sheetUrl+"&t="+Date.now())
       .then(r=>r.text())
@@ -166,8 +195,7 @@
       })
       .catch(err=>{
         console.error("단어 목록 로드 실패:", err);
-        단어목록=fallbackWords;
-        initGame();
+        단어목록=fallbackWords; initGame();
       });
 
     // === 게임 초기화 ===
@@ -175,11 +203,11 @@
       const start=new Date(2025,0,1),today=new Date();
       const days=Math.floor((today-start)/(1000*60*60*24));
       정답=단어목록[days % 단어목록.length];
-      정답낱자=[];
-      for(let ch of 정답) 정답낱자.push(...분리(ch));
+      정답낱자=[]; for(let ch of 정답) 정답낱자.push(...분리(ch));
 
-      const board=document.getElementById("board");
-      board.innerHTML="";
+      if(alreadyPlayedToday()){ showPopup("오늘은 이미 플레이 하셨습니다!"); return; }
+
+      const board=document.getElementById("board"); board.innerHTML="";
       for(let r=0;r<maxRows;r++){
         const row=document.createElement("div"); row.className="row";
         row.style.gridTemplateColumns=`repeat(${정답낱자.length},45px)`;
@@ -194,10 +222,10 @@
 
     // === 키보드 ===
     function buildKeyboard(){
-      const keyboardRows = [
-        ["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ","ㅐ","ㅔ"],
+      const keyboardRows=[
+        ["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅆ","ㅛ","ㅕ","ㅑ","ㅐ","ㅔ"],
         ["ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ"],
-        ["ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","←","Enter"]
+        ["입력","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","삭제"]
       ];
       const keyDiv=document.getElementById("keyboard"); keyDiv.innerHTML="";
       keyboardRows.forEach(rowKeys=>{
@@ -205,6 +233,7 @@
         rowKeys.forEach(k=>{
           const keyBtn=document.createElement("div");
           keyBtn.className="key"; keyBtn.textContent=k;
+          if(k==="입력"||k==="삭제") keyBtn.classList.add("wide");
           keyBtn.onclick=()=>handleKey(k);
           rowDiv.appendChild(keyBtn);
         });
@@ -215,10 +244,9 @@
     // === 키 입력 ===
     function handleKey(k){
       if(gameOver) return;
-
-      if(k==="Enter"){
+      if(k==="입력"){
         if(currentCol===정답낱자.length) submitGuess();
-      } else if(k==="←"){
+      } else if(k==="삭제"){
         if(currentCol>0){
           currentCol--; currentGuess.pop();
           document.getElementById("board").children[currentRow].children[currentCol].textContent="";
@@ -238,41 +266,16 @@
       if(guess낱자.length!==정답낱자.length) return;
       const row=document.getElementById("board").children[currentRow].children;
 
-      // Wordle 판정 로직
-      const freq={};
-      for(let i=0;i<정답낱자.length;i++){
-        freq[정답낱자[i]]=(freq[정답낱자[i]]||0)+1;
-      }
+      const freq={}; for(let i=0;i<정답낱자.length;i++) freq[정답낱자[i]]=(freq[정답낱자[i]]||0)+1;
       const result=new Array(정답낱자.length).fill("absent");
-      for(let i=0;i<정답낱자.length;i++){
-        if(guess낱자[i]===정답낱자[i]){
-          result[i]="correct"; freq[guess낱자[i]]--;
-        }
-      }
-      for(let i=0;i<정답낱자.length;i++){
-        if(result[i]==="correct") continue;
-        if(freq[guess낱자[i]]>0){
-          result[i]="present"; freq[guess낱자[i]]--;
-        }
-      }
+      for(let i=0;i<정답낱자.length;i++){ if(guess낱자[i]===정답낱자[i]){ result[i]="correct"; freq[guess낱자[i]]--; } }
+      for(let i=0;i<정답낱자.length;i++){ if(result[i]==="correct") continue; if(freq[guess낱자[i]]>0){ result[i]="present"; freq[guess낱자[i]]--; } }
 
-      for(let i=0;i<정답낱자.length;i++){
-        row[i].textContent=guess낱자[i];
-        row[i].classList.add(result[i]);
-        updateKeyboard(guess낱자[i],result[i]);
-      }
+      for(let i=0;i<정답낱자.length;i++){ row[i].textContent=guess낱자[i]; row[i].classList.add(result[i]); updateKeyboard(guess낱자[i],result[i]); }
 
-      if(guess낱자.join("")===정답낱자.join("")){
-        alert("정답! 🎉");
-        gameOver=true;
-        document.getElementById("shareBtn").style.display="inline-block";
-      }
+      if(guess낱자.join("")===정답낱자.join("")){ gameOver=true; markPlayedToday(); setTimeout(()=>showPopup("정답! 🎉"),600); }
       currentRow++; currentCol=0; currentGuess=[];
-      if(currentRow>=maxRows && !gameOver){
-        alert("실패! 정답은 "+정답);
-        gameOver=true;
-        document.getElementById("shareBtn").style.display="inline-block";
-      }
+      if(currentRow>=maxRows && !gameOver){ gameOver=true; markPlayedToday(); setTimeout(()=>showPopup("실패! 정답은 "+정답),600); }
     }
 
     // === 키보드 색 업데이트 ===
@@ -286,10 +289,30 @@
       });
     }
 
+    // === 팝업 ===
+    function showPopup(msg){
+      document.getElementById("popup-message").textContent=msg;
+      document.getElementById("popup").classList.remove("hidden");
+    }
+    document.getElementById("popup-close").onclick=()=>{ document.getElementById("popup").classList.add("hidden"); };
+
     // === 공유 ===
     function shareResult(){
-      navigator.clipboard.writeText("소리워들 결과").then(()=>alert("결과가 복사되었습니다!"));
+      let output="소리워들 결과\n";
+      for(let r=0;r<currentRow;r++){
+        const row=document.getElementById("board").children[r].children;
+        for(let c=0;c<정답낱자.length;c++){
+          if(row[c].classList.contains("correct")) output+="🟩";
+          else if(row[c].classList.contains("present")) output+="🟨";
+          else output+="⬜";
+        }
+        output+="\n";
+      }
+      navigator.clipboard.writeText(output).then(()=>alert("결과가 복사되었습니다!"));
     }
+
+    // === 통계 버튼 ===
+    document.getElementById("statsBtn").onclick=()=>{ showPopup("통계 기능은 추후 추가 예정입니다."); };
   </script>
 </body>
 </html>
