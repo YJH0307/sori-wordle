@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>sori-wordle</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; }
+    .board { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin: 20px auto; width: max-content; }
+    .row { display: grid; gap: 5px; }
+    .cell {
+      width: 50px; height: 50px;
+      border: 2px solid #ccc; display: flex; justify-content: center; align-items: center;
+      font-size: 25px; font-weight: bold;
+    }
+    .correct { background: #6aaa64; color: white; }
+    .present { background: #c9b458; color: white; }
+    .absent { background: #787c7e; color: white; }
+    input { margin-top: 20px; font-size: 20px; }
+  </style>
+</head>
+<body>
+  <h1>sori-wordle 🎵</h1>
+  <div class="board" id="board"></div>
+  <input type="text" id="guessInput" placeholder="단어 입력" />
+  <button onclick="submitGuess()">제출</button>
+
+  <script>
+    // 초성/중성/종성 테이블
+    const 초성 = [ "ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ" ];
+    const 중성 = [ "ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ" ];
+    const 종성 = [ "","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ" ];
+
+    // 꼬들 규칙에 맞는 이중모음 분리
+    const 꼬들이중모음 = {
+      "ㅘ": ["ㅗ","ㅏ"],
+      "ㅙ": ["ㅗ","ㅐ"],
+      "ㅚ": ["ㅗ","ㅣ"],
+      "ㅝ": ["ㅜ","ㅓ"],
+      "ㅞ": ["ㅜ","ㅔ"],
+      "ㅟ": ["ㅜ","ㅣ"],
+      "ㅢ": ["ㅡ","ㅣ"]
+    };
+
+    function 분리(한글) {
+      const code = 한글.charCodeAt(0) - 0xAC00;
+      if (code < 0 || code > 11171) return [한글];
+
+      const 초 = Math.floor(code / 588);
+      const 중 = Math.floor((code - (초 * 588)) / 28);
+      const 종 = code % 28;
+
+      let result = [];
+      result.push(초성[초]);
+
+      const 중자 = 중성[중];
+      if (꼬들이중모음[중자]) {
+        result.push(...꼬들이중모음[중자]);
+      } else {
+        result.push(중자);
+      }
+
+      if (종 !== 0) result.push(종성[종]);
+
+      return result;
+    }
+
+    // 단어 목록
+    const 단어목록 = ["사랑해", "학교", "바람", "친구", "공부", "돼지", "희망"];
+    const 정답 = 단어목록[Math.floor(Math.random() * 단어목록.length)];
+
+    // 정답을 낱자 단위로 분리
+    const 정답낱자 = [];
+    for (let ch of 정답) {
+      정답낱자.push(...분리(ch));
+    }
+
+    const maxRows = 6;
+
+    // 게임판 초기화
+    const board = document.getElementById("board");
+    for (let r = 0; r < maxRows; r++) {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.style.gridTemplateColumns = `repeat(${정답낱자.length}, 50px)`;
+      for (let c = 0; c < 정답낱자.length; c++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        row.appendChild(cell);
+      }
+      board.appendChild(row);
+    }
+
+    let currentRow = 0;
+
+    function submitGuess() {
+      const guess = document.getElementById("guessInput").value.trim();
+      if (!guess) return;
+
+      const guess낱자 = [];
+      for (let ch of guess) {
+        guess낱자.push(...분리(ch));
+      }
+
+      // 낱자 수가 다르면 거부
+      if (guess낱자.length !== 정답낱자.length) {
+        alert(`낱자 수가 달라 비교할 수 없습니다. (필요: ${정답낱자.length}칸)`);
+        return;
+      }
+
+      const row = board.children[currentRow].children;
+
+      for (let i = 0; i < 정답낱자.length; i++) {
+        row[i].textContent = guess낱자[i] || "";
+        if (guess낱자[i] === 정답낱자[i]) {
+          row[i].classList.add("correct");
+        } else if (정답낱자.includes(guess낱자[i])) {
+          row[i].classList.add("present");
+        } else {
+          row[i].classList.add("absent");
+        }
+      }
+
+      if (guess낱자.join("") === 정답낱자.join("")) {
+        setTimeout(() => alert("정답! 🎉"), 100);
+        return;
+      }
+
+      currentRow++;
+      if (currentRow >= maxRows) {
+        setTimeout(() => alert(`실패! 정답은 ${정답}`), 100);
+      }
+
+      document.getElementById("guessInput").value = "";
+    }
+  </script>
+</body>
+</html>
