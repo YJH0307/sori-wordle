@@ -42,8 +42,8 @@
 
     #shareBtn { display: none; }
 
-    #keyboard { display: grid; grid-template-rows: repeat(3, 1fr); gap: 5px; width: 500px; margin: 20px auto; }
-    .key-row { display: flex; justify-content: center; gap: 5px; }
+    #keyboard { display: grid; grid-template-rows: repeat(3, 1fr); gap: 5px; width: 600px; margin: 20px auto; }
+    .key-row { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; }
     .key {
       padding: 10px 14px; border: 1px solid #ccc; border-radius: 4px;
       cursor: pointer; font-weight: bold; user-select: none;
@@ -187,9 +187,11 @@
     }
 
     function buildKeyboard(){
-      const keyboardRows=[["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ"],
-                          ["ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ"],
-                          ["Enter","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","←"]];
+      const keyboardRows=[
+        ["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ"],
+        ["ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ","ㅐ","ㅔ"],
+        ["Enter","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","←"]
+      ];
       const keyDiv=document.getElementById("keyboard"); keyDiv.innerHTML="";
       keyboardRows.forEach(rowKeys=>{
         const rowDiv=document.createElement("div"); rowDiv.className="key-row";
@@ -221,22 +223,37 @@
       }
     }
 
-    // ---- IME 입력 처리 ----
-    const ime = document.getElementById('imeInput');
+    // ---- IME 입력 처리 안정화 ----
+    const ime=document.getElementById('imeInput');
     function focusIME(){ ime.focus(); }
     window.addEventListener('load', focusIME);
     document.addEventListener('click', focusIME);
-    ime.addEventListener('input',()=>{
-      if(gameOver){ ime.value=''; return; }
-      const text=ime.value; ime.value='';
+    let composing=false;
+
+    ime.addEventListener('compositionstart',()=>{composing=true;});
+    ime.addEventListener('compositionend',(e)=>{
+      composing=false;
+      if(e.data)processIME(e.data);
+      ime.value='';
+    });
+    ime.addEventListener('input',(e)=>{
+      if(composing)return;
+      const text=e.data||e.target.value;
+      if(text)processIME(text);
+      ime.value='';
+    });
+
+    function processIME(text){
+      if(gameOver)return;
       for(const ch of text){
-        if(/^[ㄱ-ㅎㅏ-ㅣ]$/.test(ch)){ handleKey(ch); continue; }
-        if(/^[가-힣]$/.test(ch)){
+        if(/^[ㄱ-ㅎㅏ-ㅣ]$/.test(ch))handleKey(ch);
+        else if(/^[가-힣]$/.test(ch)){
           const parts=분리(ch);
           for(const j of parts)handleKey(j);
         }
       }
-    });
+    }
+
     document.addEventListener("keydown",e=>{
       if(gameOver)return;
       if(e.key==="Enter")handleKey("Enter");
