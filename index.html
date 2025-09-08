@@ -232,15 +232,14 @@
       }
     }
 
-function submitGuess(){
+function submitGuess() {
   const guess낱자 = [...currentGuess];
-  const row = board.children[currentRow].children;
   const L = 정답낱자.length;
+  if (guess낱자.length !== L) return; // 안전장치
 
-  // 안전장치
-  if (guess낱자.length !== L) return;
+  const row = board.children[currentRow].children;
 
-  // 1) 정답 낱자 빈도표
+  // 1) 정답 빈도표
   const freq = {};
   for (let i = 0; i < L; i++) {
     const ch = 정답낱자[i];
@@ -249,16 +248,15 @@ function submitGuess(){
 
   const result = new Array(L).fill('absent');
 
-  // 2) 1차 패스: 자리까지 일치 -> correct
+  // 2) 1차 패스: 자리까지 일치 → correct, 개수 차감
   for (let i = 0; i < L; i++) {
-    const g = guess낱자[i];
-    if (g === 정답낱자[i]) {
+    if (guess낱자[i] === 정답낱자[i]) {
       result[i] = 'correct';
-      freq[g]--; // 사용 소진
+      freq[guess낱자[i]]--;
     }
   }
 
-  // 3) 2차 패스: 남은 칸들 -> present/absent (개수 소진 고려)
+  // 3) 2차 패스: 남은 칸 → 남은 개수 있으면 present, 아니면 absent
   for (let i = 0; i < L; i++) {
     if (result[i] === 'correct') continue;
     const g = guess낱자[i];
@@ -270,17 +268,18 @@ function submitGuess(){
     }
   }
 
-  // 4) 보드/키보드 업데이트 저장
+  // 4) 보드/키보드 반영
   const rowData = [];
   for (let i = 0; i < L; i++) {
     row[i].textContent = guess낱자[i];
+    row[i].classList.remove('correct','present','absent');
     row[i].classList.add(result[i]);
     rowData.push({ letter: guess낱자[i], state: result[i] });
-    updateKeyboard(guess낱자[i], result[i]);
+    updateKeyboard(guess낱자[i], result[i]); // 우선순위는 함수 내부에서 유지
   }
   rowsData[currentRow] = rowData;
 
-  // 5) 정답 체크 & 진행
+  // 5) 정답 체크 및 진행
   if (guess낱자.join('') === 정답낱자.join('')) {
     setTimeout(() => alert('정답! 🎉'), 100);
     gameOver = true;
