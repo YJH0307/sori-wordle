@@ -232,33 +232,73 @@
       }
     }
 
-    function submitGuess(){
-      const guess낱자=[...currentGuess];
-      const row=board.children[currentRow].children;
-      const rowData=[];
-      for(let i=0;i<정답낱자.length;i++){
-        const gc=guess낱자[i]; row[i].textContent=gc;
-        let state="absent";
-        if(gc===정답낱자[i])state="correct";
-        else if(정답낱자.includes(gc))state="present";
-        row[i].classList.add(state);
-        rowData.push({letter:gc,state});
-        updateKeyboard(gc,state);
-      }
-      rowsData[currentRow]=rowData;
+function submitGuess(){
+  const guess낱자 = [...currentGuess];
+  const row = board.children[currentRow].children;
+  const L = 정답낱자.length;
 
-      if(guess낱자.join("")===정답낱자.join("")){
-        setTimeout(()=>alert("정답! 🎉"),100);
-        gameOver=true; document.getElementById("shareBtn").style.display="inline-block";
-        updateStats(true,currentRow+1);
-      }
-      currentRow++; currentCol=0; currentGuess=[];
-      if(currentRow>=maxRows&&!gameOver){
-        setTimeout(()=>alert(`실패! 정답은 ${정답}`),100);
-        gameOver=true; document.getElementById("shareBtn").style.display="inline-block";
-        updateStats(false);
-      }
+  // 안전장치
+  if (guess낱자.length !== L) return;
+
+  // 1) 정답 낱자 빈도표
+  const freq = {};
+  for (let i = 0; i < L; i++) {
+    const ch = 정답낱자[i];
+    freq[ch] = (freq[ch] || 0) + 1;
+  }
+
+  const result = new Array(L).fill('absent');
+
+  // 2) 1차 패스: 자리까지 일치 -> correct
+  for (let i = 0; i < L; i++) {
+    const g = guess낱자[i];
+    if (g === 정답낱자[i]) {
+      result[i] = 'correct';
+      freq[g]--; // 사용 소진
     }
+  }
+
+  // 3) 2차 패스: 남은 칸들 -> present/absent (개수 소진 고려)
+  for (let i = 0; i < L; i++) {
+    if (result[i] === 'correct') continue;
+    const g = guess낱자[i];
+    if (freq[g] > 0) {
+      result[i] = 'present';
+      freq[g]--;
+    } else {
+      result[i] = 'absent';
+    }
+  }
+
+  // 4) 보드/키보드 업데이트 저장
+  const rowData = [];
+  for (let i = 0; i < L; i++) {
+    row[i].textContent = guess낱자[i];
+    row[i].classList.add(result[i]);
+    rowData.push({ letter: guess낱자[i], state: result[i] });
+    updateKeyboard(guess낱자[i], result[i]);
+  }
+  rowsData[currentRow] = rowData;
+
+  // 5) 정답 체크 & 진행
+  if (guess낱자.join('') === 정답낱자.join('')) {
+    setTimeout(() => alert('정답! 🎉'), 100);
+    gameOver = true;
+    document.getElementById('shareBtn').style.display = 'inline-block';
+    updateStats(true, currentRow + 1);
+  }
+
+  currentRow++;
+  currentCol = 0;
+  currentGuess = [];
+
+  if (currentRow >= maxRows && !gameOver) {
+    setTimeout(() => alert(`실패! 정답은 ${정답}`), 100);
+    gameOver = true;
+    document.getElementById('shareBtn').style.display = 'inline-block';
+    updateStats(false);
+  }
+}
 
     function updateKeyboard(letter,state){
       document.querySelectorAll(".key").forEach(k=>{
