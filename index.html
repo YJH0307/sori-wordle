@@ -151,8 +151,6 @@
       <div style="font-size:20px;font-weight:900;margin-bottom:8px;">소리워들</div>
       <div>소리MAD와 관련된 모든 단어가 제시어입니다.</div>
       <div>하루에 문제 1개, 기회 6번.</div>
-      <div>정답 단어는 한글 음절을 초성·중성·종성 낱자로 쪼개어 비교한다.</div>
-      <div>이중모음과 이중받침은 각각 단모음, 단자음으로 분해해 판정한다.</div>
       <div style="margin-top:8px;">색의 의미</div>
       <div>🟩 위치·낱자 모두 일치</div>
       <div>🟨 단어 안에 있지만 위치 다름</div>
@@ -282,25 +280,25 @@ loadWords()
     }
 
     // === 게임 초기화 ===
-    function initGame(){
-      const start=new Date(2025,0,1),today=new Date();
-      const days=Math.floor((today-start)/(1000*60*60*24));
-      정답=단어목록[days % 단어목록.length];
-      정답낱자=[]; for(let ch of 정답) 정답낱자.push(...분리(ch));
 
+  function initGame(){
+  const start=new Date(2025,0,1),today=new Date();
+  const days=Math.floor((today-start)/(1000*60*60*24));
+  정답=단어목록[days % 단어목록.length];
+  정답낱자=[]; for(let ch of 정답) 정답낱자.push(...분리(ch));
 
-      const board=document.getElementById("board"); board.innerHTML="";
-      for(let r=0;r<maxRows;r++){
-        const row=document.createElement("div"); row.className="row";
-        row.style.gridTemplateColumns=`repeat(${정답낱자.length},45px)`;
-        for(let c=0;c<정답낱자.length;c++){
-          const cell=document.createElement("div"); cell.className="cell";
-          row.appendChild(cell);
-        }
-        board.appendChild(row);
-      }
-      buildKeyboard();
-    }
+  // ▼ 하루 1회 제한: 오늘 이미 했으면 바로 종료
+  if (alreadyPlayedToday()) {
+    showPopup("오늘은 이미 플레이하셨습니다!");
+    gameOver = true;
+    document.getElementById("shareBtn").style.display="inline-block"; // 결과 공유는 가능하게
+    return;
+  }
+
+  const board=document.getElementById("board"); board.innerHTML="";
+  ...
+}
+
 
     // === 하루 1번 제한 ===
 function alreadyPlayedToday(){
@@ -443,13 +441,18 @@ function shareResult() {
   }
 }
 // ✅ 최종 폴백: 숨은 textarea를 만들어 execCommand('copy') 사용
-function tryClipboardCopy(text){
+
+    function tryClipboardCopy(text){
   const ta = document.createElement("textarea");
   ta.value = text;
   ta.setAttribute("readonly", "");
   ta.style.position = "fixed";
   ta.style.top = "-1000px";
   document.body.appendChild(ta);
+
+  // ▼ 반드시 선택해줘야 복사가 된다
+  ta.select();
+  ta.setSelectionRange(0, 999999);
 
   let ok = false;
   try {
