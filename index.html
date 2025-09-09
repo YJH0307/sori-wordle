@@ -169,19 +169,15 @@
     }
 
     // === 데이터 ===
+    let 정답, 정답낱자;
+const maxRows = 6;
+let currentRow = 0, currentCol = 0;
+let gameOver = false;
+let currentGuess = [];
     // === Google Sheets CSV + fallbackWords ===
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
 let 단어목록 = [];
 const fallbackWords = ["날왈","사이키라", "대정령", "렌더", "우사테이"];
-
-loadWords()
-  .then(list => { 단어목록 = list; initGame(); })
-  .catch(err => {
-    console.error("단어 목록 로드 실패:", err);
-    단어목록 = fallbackWords;
-    showPopup("단어 목록을 불러오지 못했습니다. 시트를 '웹에 게시'했는지와 A열에 한글만 있는지 확인하세요.");
-    initGame();
-  });
 
     function parseCSVFirstColumn(csvText){
   const clean = csvText.replace(/^\uFEFF/, "");     // BOM 제거
