@@ -168,63 +168,51 @@
       return res;
     }
 
-    // === 데이터 ===
-    let 정답, 정답낱자;
-    let lastTries = null;  // ✅ 최종 시도 횟수 (성공시 1~6, 실패시 "X")
-const maxRows = 6;
-let currentRow = 0, currentCol = 0;
-let gameOver = false;
-let currentGuess = [];
-    // === Google Sheets CSV + fallbackWords ===
+// === 데이터 ===
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
 let 단어목록 = [];
 const fallbackWords = ["날왈","사이키라", "대정령", "렌더", "우사테이"];
 
+// 🔴 전역 상태 (누락되어 있던 것들)
+let 정답, 정답낱자;
+const maxRows = 6;
+let currentRow = 0, currentCol = 0;
+let gameOver = false;
+let currentGuess = [];
+
+// CSV 1열만 사용 + BOM/CRLF 정리
 function parseCSVFirstColumn(csvText){
-  // BOM 제거 + 줄 분리
   const clean = csvText.replace(/^\uFEFF/, "");
   const lines = clean.split(/\r?\n/);
-
-  // 첫 열만 추출
   const firstCol = lines
     .map(line => (line.split(",")[0] || "").trim())
     .filter(Boolean);
-
-  // 한글만 남기되, 안 맞는 글자는 제거해서 복구 시도
-  const normalized = firstCol
-    .map(w => w.replace(/[^가-힣]/g, "")) // 한글 외 제거
-    .map(w => w.trim())
-    .filter(Boolean); // 완전히 비면 제거
-
-  return normalized;
+  // 순수 한글만
+  const onlyHangul = firstCol.filter(w => /^[가-힣]+$/.test(w));
+  return onlyHangul;
 }
 
-async function loadWords(){
-  const url = sheetUrl + "&t=" + Date.now(); // 캐시 회피
-  let lastErr = null;
-
-  for (let attempt = 1; attempt <= 3; attempt++){
-    try {
-      const r = await fetch(url, { cache: "no-store" });
+// 시트 로딩 (중복 호출 금지)
+function loadWords(){
+  return fetch(sheetUrl + "&t=" + Date.now(), { cache: "no-store" })
+    .then(r => {
       if(!r.ok) throw new Error("HTTP " + r.status);
-      const csv = await r.text();
+      return r.text();
+    })
+    .then(csv => {
+      // 디버그 로그 (개발자도구 콘솔에서 확인)
+      console.log("[CSV raw len]", csv.length);
+      console.log("[CSV preview]", csv.slice(0, 200));
 
-      console.log(`[CSV len] ${csv.length} (try ${attempt})`);
       const parsed = parseCSVFirstColumn(csv);
-      console.log(`[Parsed] count=${parsed.length}`, parsed.slice(0,10));
+      console.log("[Parsed count]", parsed.length, parsed.slice(0, 10));
 
-      if(parsed.length === 0) throw new Error("parsed empty");
+      if (parsed.length === 0) throw new Error("빈 목록");
       return parsed;
-    } catch (e){
-      lastErr = e;
-      console.warn(`loadWords attempt ${attempt} failed:`, e);
-      await new Promise(res => setTimeout(res, 600 * attempt)); // 점진 대기
-    }
-  }
-  throw lastErr || new Error("loadWords failed");
+    });
 }
 
-// 호출부
+// ✅ 호출부: 반드시 한 번만!
 loadWords()
   .then(list => { 단어목록 = list; initGame(); })
   .catch(err => {
