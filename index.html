@@ -37,7 +37,7 @@
     }
     .row {
   display: grid;
-  gap: 4px;
+  gap: 5px;
   justify-content: center;   /* ← 추가: 열 트랙 중앙 정렬 */
     }
     .cell {
@@ -143,7 +143,43 @@
     </div>
   </div>
 
+<div id="helpPopup" class="popup hidden">
+  <div class="popup-content">
+    <span id="help-close" style="float:right;cursor:pointer;font-size:20px;">×</span>
+    <h2>게임 규칙</h2>
+    <div style="text-align:center;line-height:1.8;font-size:15px;">
+      <div style="font-size:20px;font-weight:900;margin-bottom:8px;">소리워들</div>
+      <div>소리MAD와 관련된 모든 단어가 제시어입니다.</div>
+      <div>하루에 문제 1개, 기회 6번.</div>
+      <div>정답 단어는 한글 음절을 초성·중성·종성 낱자로 쪼개어 비교한다.</div>
+      <div>이중모음과 이중받침은 각각 단모음, 단자음으로 분해해 판정한다.</div>
+      <div style="margin-top:8px;">색의 의미</div>
+      <div>🟩 위치·낱자 모두 일치</div>
+      <div>🟨 단어 안에 있지만 위치 다름</div>
+      <div>⬜ 단어에 없음</div>
+      <div style="font-size:12px;color:#888;margin-top:10px;">“소리워들”은 자정에 갱신됩니다.</div>
+    </div>
+  </div>
+</div>
+  
   <script>
+
+      // === 규칙 팝업 ===
+  function openHelpPopup(){
+    document.getElementById("helpPopup").classList.remove("hidden");
+  }
+  function closeHelpPopup(){
+    document.getElementById("helpPopup").classList.add("hidden");
+  }
+  document.getElementById("help-close").onclick = closeHelpPopup;
+
+  // 당일 첫 접속 시 규칙 팝업 자동 표시
+  const todayKey = "help-seen-" + new Date().toISOString().slice(0,10);
+  if(!localStorage.getItem(todayKey)){
+    setTimeout(openHelpPopup, 500);
+    localStorage.setItem(todayKey,"true");
+  }
+
     // === 테마 ===
     function loadTheme() {
       const t = localStorage.getItem('sori-wordle-theme') || 'light';
