@@ -393,17 +393,7 @@ function markPlayedToday(){
 function shareResult() {
   const text = buildShareText();
 
-  // 1) Web Share API (모바일 전용)
-  if (navigator.share) {
-    navigator.share({ title: "소리워들", text })
-      .then(() => alert("공유 창이 열렸습니다."))
-      .catch(() => {
-        tryClipboardCopy(text); // 실패 시 복사 폴백
-      });
-    return;
-  }
-
-  // 2) Clipboard API (데스크탑 HTTPS)
+  // ✅ 항상 클립보드 복사만 시도
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text)
       .then(() => alert("결과가 클립보드에 복사되었습니다!"))
@@ -411,11 +401,10 @@ function shareResult() {
         console.error("Clipboard API 실패:", err);
         tryClipboardCopy(text); // 폴백
       });
-    return;
+  } else {
+    // ✅ execCommand 폴백
+    tryClipboardCopy(text);
   }
-
-  // 3) execCommand 폴백 (구버전/HTTP 등)
-  tryClipboardCopy(text);
 }
 // ✅ 최종 폴백: 숨은 textarea를 만들어 execCommand('copy') 사용
 function tryClipboardCopy(text){
@@ -425,18 +414,6 @@ function tryClipboardCopy(text){
   ta.style.position = "fixed";
   ta.style.top = "-1000px";
   document.body.appendChild(ta);
-
-  // iOS 대응
-  if (navigator.userAgent.match(/ipad|iphone/i)) {
-    const range = document.createRange();
-    range.selectNodeContents(ta);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-    ta.setSelectionRange(0, 999999);
-  } else {
-    ta.select();
-  }
 
   let ok = false;
   try {
