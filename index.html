@@ -27,8 +27,19 @@
     body.light .controls button, body.light #shareBtn { background: #eee; color: #000; }
     body.dark  .controls button, body.dark #shareBtn { background: #ddd; color: #000; }
 
-    .board { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin: 20px auto; width: max-content; }
-    .row { display: grid; gap: 5px; }
+    .board {
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  gap: 5px;
+  margin: 20px auto;
+  width: 100%;               /* ← 기존 max-content 대신 전체 폭 */
+  justify-items: center;     /* ← 추가: 각 행을 가로 중앙에 배치 */
+    }
+    .row {
+  display: grid;
+  gap: 5px;
+  justify-content: center;   /* ← 추가: 열 트랙 중앙 정렬 */
+    }
     .cell {
       width: 45px; height: 45px; border: 2px solid #ccc;
       display: flex; justify-content: center; align-items: center;
