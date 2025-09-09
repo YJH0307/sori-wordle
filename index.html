@@ -390,29 +390,31 @@ function markPlayedToday(){
     document.getElementById("popup-close").onclick=()=>{ document.getElementById("popup").classList.add("hidden"); };
 
     // === 공유 ===
-    function shareResult(){
+function shareResult() {
   const text = buildShareText();
 
-  // 1) Web Share API (모바일에서 공유 시트 열기) 시도
+  // 1) Web Share API (모바일 전용)
   if (navigator.share) {
     navigator.share({ title: "소리워들", text })
-      .then(()=> alert("공유 창이 열렸습니다."))
-      .catch(()=> {
-        // 사용자가 취소했거나 지원 안 함 → 복사로 폴백
-        tryClipboardCopy(text);
+      .then(() => alert("공유 창이 열렸습니다."))
+      .catch(() => {
+        tryClipboardCopy(text); // 실패 시 복사 폴백
       });
     return;
   }
 
-  // 2) Clipboard API (HTTPS/localhost 필요)
-  if (navigator.clipboard && window.isSecureContext) {
+  // 2) Clipboard API (데스크탑 HTTPS)
+  if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text)
-      .then(()=> alert("결과가 클립보드에 복사되었습니다!"))
-      .catch(()=> tryClipboardCopy(text));
+      .then(() => alert("결과가 클립보드에 복사되었습니다!"))
+      .catch(err => {
+        console.error("Clipboard API 실패:", err);
+        tryClipboardCopy(text); // 폴백
+      });
     return;
   }
 
-  // 3) 최종 폴백: execCommand('copy')
+  // 3) execCommand 폴백 (구버전/HTTP 등)
   tryClipboardCopy(text);
 }
 // ✅ 최종 폴백: 숨은 textarea를 만들어 execCommand('copy') 사용
