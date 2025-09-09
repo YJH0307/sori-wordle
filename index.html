@@ -170,6 +170,7 @@
 
     // === 데이터 ===
     let 정답, 정답낱자;
+    let lastTries = null;  // ✅ 최종 시도 횟수 (성공시 1~6, 실패시 "X")
 const maxRows = 6;
 let currentRow = 0, currentCol = 0;
 let gameOver = false;
@@ -354,6 +355,7 @@ loadWords()
   if(guess.join("")===정답낱자.join("")){
     gameOver=true;
     const tries = currentRow+1;   // ✅ 실제 시도 횟수(오프바이원 방지)
+    lastTries = currentRow+1;   // ✅ 성공한 경우 몇 번째 시도인지 저장
     markPlayedToday();
     updateStats(true, tries);
     setTimeout(()=>showPopup("정답! 🎉 ("+tries+"/6)"),600);
@@ -369,6 +371,7 @@ loadWords()
   // --- 실패 처리 ---
   if(currentRow>=maxRows && !gameOver){
     gameOver=true;
+    lastTries = "X";   // ✅ 실패한 경우 X로 저장
     markPlayedToday();
     updateStats(false,0);
     setTimeout(()=>showPopup("실패! 정답은 "+정답),600);
@@ -449,22 +452,19 @@ function tryClipboardCopy(text){
 
 // ✅ 공유 텍스트 생성 (N/6 또는 X/6 + 블록 패턴)
 function buildShareText(){
-  let tries;
-  if (gameOver){
-    // 정답 성공: submitGuess에서 return 처리로 currentRow가 증가하지 않음 → currentRow가 실제 시도 수
-    if (currentRow < maxRows && document.getElementById("board").children[currentRow].children[0].textContent===""){
-      tries = currentRow;
-    } else if (currentRow >= maxRows){
-      // 실패
-      tries = "X";
-    }
-  } else {
-    // 게임 중이면 현재 줄 수 표시(원치 않으면 "X"로 바꿔도 됨)
-    tries = currentRow;
-  }
-
+  const tries = (lastTries===null) ? "X" : lastTries;
   let output = `소리워들 ${tries}/6\n`;
-  for (let r=0; r<Math.min(currentRow, maxRows); r++){
+
+  // 성공이면 lastTries 만큼 줄 출력, 실패면 6줄
+  const rowsToPrint = (typeof lastTries === "number") ? lastTries : maxRows;
+
+  for (let r=0; r<rowsToPrint; r++){
+    // ✅ 마지막 줄이고 성공한 경우 → 전부 초록으로 강제
+    if (typeof lastTries === "number" && r === rowsToPrint-1){
+      output += "🟩".repeat(정답낱자.length) + "\n";
+      continue;
+    }
+
     const row = document.getElementById("board").children[r].children;
     for (let c=0; c<정답낱자.length; c++){
       if (row[c].classList.contains("correct")) output += "🟩";
@@ -473,6 +473,7 @@ function buildShareText(){
     }
     output += "\n";
   }
+
   return output;
 }
     // === 통계 보기 ===
