@@ -255,6 +255,16 @@ loadWords()
       buildKeyboard();
     }
 
+    // === 하루 1번 제한 ===
+function alreadyPlayedToday(){
+  const today = new Date().toISOString().slice(0,10);
+  return localStorage.getItem("played-"+today);
+}
+function markPlayedToday(){
+  const today = new Date().toISOString().slice(0,10);
+  localStorage.setItem("played-"+today,"true");
+}
+
     // === 키보드 ===
     function buildKeyboard(){
       const rows=[["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ","ㅐ","ㅔ"],
