@@ -179,6 +179,7 @@ const maxRows = 6;
 let currentRow = 0, currentCol = 0;
 let gameOver = false;
 let currentGuess = [];
+let lastTries = null;   // ✅ 추가: 공유용 시도 횟수 저장
 
 // CSV 1열만 사용 + BOM/CRLF 정리
 function parseCSVFirstColumn(csvText){
@@ -232,21 +233,6 @@ loadWords()
     function getStats(){
       return JSON.parse(localStorage.getItem("sori-stats")||'{"played":0,"wins":0,"dist":[0,0,0,0,0,0]}');
     }
-
-    // === 하루 1번 제한 ===
-    function alreadyPlayedToday(){
-      const today=new Date().toISOString().slice(0,10);
-      return localStorage.getItem("played-"+today);
-    }
-    function markPlayedToday(){
-      const today=new Date().toISOString().slice(0,10);
-      localStorage.setItem("played-"+today,"true");
-    }
-
-      .catch(err=>{
-        console.error("단어 목록 로드 실패:",err);
-        단어목록=fallbackWords; initGame();
-      });
 
     // === 게임 초기화 ===
     function initGame(){
