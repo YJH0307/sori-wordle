@@ -174,19 +174,26 @@ const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQs
 let 단어목록 = [];
 const fallbackWords = ["날왈","사이키라", "대정령", "렌더", "우사테이"];
 
-function parseCSVFirstColumn(csvText){
-  // 1) BOM 제거 + 줄 분해(\r\n 대응)
-  const clean = csvText.replace(/^\uFEFF/, "");
-  const lines = clean.split(/\r?\n/);
+loadWords()
+  .then(list => { 단어목록 = list; initGame(); })
+  .catch(err => {
+    console.error("단어 목록 로드 실패:", err);
+    단어목록 = fallbackWords;
+    showPopup("단어 목록을 불러오지 못했습니다. 시트를 '웹에 게시'했는지와 A열에 한글만 있는지 확인하세요.");
+    initGame();
+  });
 
-  // 2) 첫 번째 열만 추출 (쉼표 앞)
+    function parseCSVFirstColumn(csvText){
+  const clean = csvText.replace(/^\uFEFF/, "");     // BOM 제거
+  const lines = clean.split(/\r?\n/);               // CRLF 대응
+
+  // 첫 번째 열만 추출 → 공백 제거
   const firstCol = lines
-    .map(line => line.split(",")[0] || "")
-    .map(s => s.trim())
+    .map(line => (line.split(",")[0] || "").trim())
     .filter(Boolean);
 
-  // 3) 한글만 허용 + 길이 제한(2~6글자 권장)
-  const onlyHangul = firstCol.filter(w => /^[가-힣]+$/.test(w) && w.length >= 2 && w.length <= 12);
+  // 한글만 허용 (길이 제한 제거)
+  const onlyHangul = firstCol.filter(w => /^[가-힣]+$/.test(w));
 
   return onlyHangul;
 }
@@ -198,10 +205,18 @@ function loadWords(){
       return r.text();
     })
     .then(csv => {
-      const parsed = parseCSVFirstColumn(csv);
-      if(parsed.length === 0) throw new Error("빈 목록");
-      return parsed;
-    });
+  // ✅ 디버깅 로그 추가
+  console.log("[CSV raw len]", csv.length);
+  console.log("[CSV preview]", csv.slice(0, 200)); // 처음 200자 확인용
+
+  const parsed = parseCSVFirstColumn(csv);
+
+  // ✅ 파싱된 단어 개수와 일부 샘플 출력
+  console.log("[Parsed count]", parsed.length, parsed.slice(0, 10));
+
+  if(parsed.length === 0) throw new Error("빈 목록");
+  return parsed;
+})
 }
 
 // 호출부
