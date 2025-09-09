@@ -232,7 +232,7 @@ loadWords()
     단어목록 = fallbackWords;
     showPopup("단어 목록을 불러오지 못했습니다. 시트를 '웹에 게시'했는지와 A열에 한글만 있는지 확인하세요.");
     initGame();
-  });  });
+  });
 
     // === 통계 ===
     function updateStats(win, tries){
@@ -255,13 +255,6 @@ loadWords()
       localStorage.setItem("played-"+today,"true");
     }
 
-    fetch(sheetUrl+"&t="+Date.now())
-      .then(r=>r.text())
-      .then(csv=>{
-        단어목록=csv.split("\n").map(s=>s.trim()).filter(Boolean);
-        if(단어목록.length===0) 단어목록=fallbackWords;
-        initGame();
-      })
       .catch(err=>{
         console.error("단어 목록 로드 실패:",err);
         단어목록=fallbackWords; initGame();
@@ -285,7 +278,7 @@ loadWords()
         }
         board.appendChild(row);
       }
-      Keyboard();
+      buildKeyboard();
     }
 
     // === 키보드 ===
@@ -491,7 +484,7 @@ function buildShareText(){
   }
 
   // ✅ 마지막에 사이트 주소 추가
-  output += "\nhttp://sori-wordle.com";
+  output += "\nhttps://sori-wordle.com";
 
   return output;
 }
