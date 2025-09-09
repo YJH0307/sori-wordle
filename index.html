@@ -200,19 +200,37 @@
     const 종성=["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
     const 꼬들이중모음={ "ㅘ":["ㅗ","ㅏ"],"ㅙ":["ㅗ","ㅐ"],"ㅚ":["ㅗ","ㅣ"],"ㅝ":["ㅜ","ㅓ"],"ㅞ":["ㅜ","ㅔ"],"ㅟ":["ㅜ","ㅣ"],"ㅢ":["ㅡ","ㅣ"],"ㅒ":["ㅑ","ㅣ"],"ㅖ":["ㅕ","ㅣ"] };
     const 꼬들이중받침={ "ㄳ":["ㄱ","ㅅ"],"ㄵ":["ㄴ","ㅈ"],"ㄶ":["ㄴ","ㅎ"],"ㄺ":["ㄹ","ㄱ"],"ㄻ":["ㄹ","ㅁ"],"ㄼ":["ㄹ","ㅂ"],"ㄽ":["ㄹ","ㅅ"],"ㄾ":["ㄹ","ㅌ"],"ㄿ":["ㄹ","ㅍ"],"ㅀ":["ㄹ","ㅎ"],"ㅄ":["ㅂ","ㅅ"] };
+    const 꼬들된소리 = {"ㄲ":["ㄱ","ㄱ"], "ㄸ":["ㄷ","ㄷ"], "ㅃ":["ㅂ","ㅂ"], "ㅉ":["ㅈ","ㅈ"], "ㅆ":["ㅅ","ㅅ"]
+};
+
     function 분리(ch){
-      const code=ch.charCodeAt(0)-0xAC00;
-      if(code<0||code>11171) return [ch];
-      const cho=Math.floor(code/588), jung=Math.floor((code-cho*588)/28), jong=code%28;
-      let res=[초성[cho]];
-      const jungChar=중성[jung];
-      if(꼬들이중모음[jungChar]) res.push(...꼬들이중모음[jungChar]); else res.push(jungChar);
-      if(jong!==0){
-        const jongChar=종성[jong];
-        if(꼬들이중받침[jongChar]) res.push(...꼬들이중받침[jongChar]); else res.push(jongChar);
-      }
-      return res;
-    }
+  const code=ch.charCodeAt(0)-0xAC00;
+  if(code<0||code>11171) return [ch];
+
+  const cho=Math.floor(code/588), jung=Math.floor((code-cho*588)/28), jong=code%28;
+  let res=[];
+
+  // 초성 처리: 된소리면 분해
+  const choChar=초성[cho];
+  if(꼬들된소리[choChar]) res.push(...꼬들된소리[choChar]);
+  else res.push(choChar);
+
+  // 중성 처리: 이중모음 분해
+  const jungChar=중성[jung];
+  if(꼬들이중모음[jungChar]) res.push(...꼬들이중모음[jungChar]);
+  else res.push(jungChar);
+
+  // 종성 처리: 이중받침/된소리 분해
+  if(jong!==0){
+    const jongChar=종성[jong];
+    if(꼬들이중받침[jongChar]) res.push(...꼬들이중받침[jongChar]);
+    else if(꼬들된소리[jongChar]) res.push(...꼬들된소리[jongChar]);  // ㄲ, ㅆ 처리
+    else res.push(jongChar);
+  }
+
+  return res;
+}
+
 
 // === 데이터 ===
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
