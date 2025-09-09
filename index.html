@@ -169,12 +169,51 @@
     }
 
     // === 데이터 ===
-    const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
-    let 단어목록=[]; const fallbackWords=["날왈","사이키라", "대정령", "렌더", "우사테이"];
-    let 정답, 정답낱자;
-    const maxRows=6;
-    let currentRow=0, currentCol=0, gameOver=false;
-    let currentGuess=[];
+    // === Google Sheets CSV + fallbackWords ===
+const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
+let 단어목록 = [];
+const fallbackWords = ["날왈","사이키라", "대정령", "렌더", "우사테이"];
+
+function parseCSVFirstColumn(csvText){
+  // 1) BOM 제거 + 줄 분해(\r\n 대응)
+  const clean = csvText.replace(/^\uFEFF/, "");
+  const lines = clean.split(/\r?\n/);
+
+  // 2) 첫 번째 열만 추출 (쉼표 앞)
+  const firstCol = lines
+    .map(line => line.split(",")[0] || "")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  // 3) 한글만 허용 + 길이 제한(2~6글자 권장)
+  const onlyHangul = firstCol.filter(w => /^[가-힣]+$/.test(w) && w.length >= 2 && w.length <= 12);
+
+  return onlyHangul;
+}
+
+function loadWords(){
+  return fetch(sheetUrl + "&t=" + Date.now(), { cache: "no-store" })
+    .then(r => {
+      if(!r.ok) throw new Error("HTTP " + r.status);
+      return r.text();
+    })
+    .then(csv => {
+      const parsed = parseCSVFirstColumn(csv);
+      if(parsed.length === 0) throw new Error("빈 목록");
+      return parsed;
+    });
+}
+
+// 호출부
+loadWords()
+  .then(list => { 단어목록 = list; initGame(); })
+  .catch(err => {
+    console.error("단어 목록 로드 실패:", err);
+    단어목록 = fallbackWords;
+    // 사용자에게 이유 안내 (원인 파악에 도움)
+    showPopup("단어 목록을 불러오지 못했습니다. 시트를 '웹에 게시'했는지와 A열에 한글만 있는지 확인하세요.");
+    initGame();
+  });
 
     // === 통계 ===
     function updateStats(win, tries){
@@ -267,18 +306,64 @@
 
     // === 제출 ===
     function submitGuess(){
-      const guess=[...currentGuess]; if(guess.length!==정답낱자.length) return;
-      const row=document.getElementById("board").children[currentRow].children;
-      const freq={}; for(let i=0;i<정답낱자.length;i++) freq[정답낱자[i]]=(freq[정답낱자[i]]||0)+1;
-      const result=new Array(정답낱자.length).fill("absent");
-      for(let i=0;i<정답낱자.length;i++){ if(guess[i]===정답낱자[i]){ result[i]="correct"; freq[guess[i]]--; } }
-      for(let i=0;i<정답낱자.length;i++){ if(result[i]==="correct") continue; if(freq[guess[i]]>0){ result[i]="present"; freq[guess[i]]--; } }
-      for(let i=0;i<정답낱자.length;i++){ row[i].textContent=guess[i]; row[i].classList.add(result[i]); updateKeyboard(guess[i],result[i]); }
+  const guess=[...currentGuess];
+  if(guess.length!==정답낱자.length) return;
 
-      if(guess.join("")===정답낱자.join("")){ gameOver=true; markPlayedToday(); updateStats(true,currentRow+1); setTimeout(()=>showPopup("정답! 🎉 ("+(currentRow+1)+"/6)"),600); }
-      currentRow++; currentCol=0; currentGuess=[];
-      if(currentRow>=maxRows && !gameOver){ gameOver=true; markPlayedToday(); updateStats(false,0); setTimeout(()=>showPopup("실패! 정답은 "+정답),600); }
+  const row=document.getElementById("board").children[currentRow].children;
+
+  // --- 판정 준비 ---
+  const freq={};
+  for(let i=0;i<정답낱자.length;i++){
+    freq[정답낱자[i]]=(freq[정답낱자[i]]||0)+1;
+  }
+
+  const result=new Array(정답낱자.length).fill("absent");
+  for(let i=0;i<정답낱자.length;i++){
+    if(guess[i]===정답낱자[i]){
+      result[i]="correct";
+      freq[guess[i]]--;
     }
+  }
+  for(let i=0;i<정답낱자.length;i++){
+    if(result[i]==="correct") continue;
+    if(freq[guess[i]]>0){
+      result[i]="present";
+      freq[guess[i]]--;
+    }
+  }
+
+  // --- 칸 색칠 + 키보드 갱신 ---
+  for(let i=0;i<정답낱자.length;i++){
+    row[i].textContent=guess[i];
+    row[i].classList.add(result[i]);
+    updateKeyboard(guess[i],result[i]);
+  }
+
+  // --- 정답 맞춘 경우 ---
+  if(guess.join("")===정답낱자.join("")){
+    gameOver=true;
+    const tries = currentRow+1;   // ✅ 실제 시도 횟수(오프바이원 방지)
+    markPlayedToday();
+    updateStats(true, tries);
+    setTimeout(()=>showPopup("정답! 🎉 ("+tries+"/6)"),600);
+    document.getElementById("shareBtn").style.display="inline-block";
+    return; // ✅ currentRow++ 방지 (여기서 종료)
+  }
+
+  // --- 다음 줄 이동 ---
+  currentRow++;
+  currentCol=0;
+  currentGuess=[];
+
+  // --- 실패 처리 ---
+  if(currentRow>=maxRows && !gameOver){
+    gameOver=true;
+    markPlayedToday();
+    updateStats(false,0);
+    setTimeout(()=>showPopup("실패! 정답은 "+정답),600);
+    document.getElementById("shareBtn").style.display="inline-block";
+  }
+}
 
     // === 키보드 색 업데이트 ===
     function updateKeyboard(letter,state){
@@ -297,18 +382,34 @@
 
     // === 공유 ===
     function shareResult(){
-      let output="소리워들 결과\n";
-      for(let r=0;r<currentRow;r++){
-        const row=document.getElementById("board").children[r].children;
-        for(let c=0;c<정답낱자.length;c++){
-          if(row[c].classList.contains("correct")) output+="🟩";
-          else if(row[c].classList.contains("present")) output+="🟨";
-          else output+="⬜";
-        }
-        output+="\n";
-      }
-      navigator.clipboard.writeText(output).then(()=>alert("결과가 복사되었습니다!"));
+  let tries;
+  if(gameOver){
+    if(
+      currentRow < maxRows &&
+      document.getElementById("board").children[currentRow].children[0].textContent===""
+    ){
+      // ✅ 정답을 맞춘 경우: submitGuess에서 return으로 currentRow 미증가
+      tries = currentRow;
+    } else if(currentRow >= maxRows){
+      // ✅ 실패한 경우
+      tries = "X";
     }
+  }
+  let output = `소리워들 ${tries}/6\n`;
+
+  for(let r=0;r<Math.min(currentRow,maxRows);r++){
+    const row=document.getElementById("board").children[r].children;
+    for(let c=0;c<정답낱자.length;c++){
+      if(row[c].classList.contains("correct")) output+="🟩";
+      else if(row[c].classList.contains("present")) output+="🟨";
+      else output+="⬜";
+    }
+    output+="\n";
+  }
+
+  navigator.clipboard.writeText(output)
+    .then(()=>alert("결과가 복사되었습니다!"));
+}
 
     // === 통계 보기 ===
     document.getElementById("statsBtn").onclick=()=>{
