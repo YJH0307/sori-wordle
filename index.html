@@ -288,14 +288,6 @@ loadWords()
   정답=단어목록[days % 단어목록.length];
   정답낱자=[]; for(let ch of 정답) 정답낱자.push(...분리(ch));
 
-  // ▼ 하루 1회 제한: 오늘 이미 했으면 바로 종료
-  if (alreadyPlayedToday()) {
-    showPopup("오늘은 이미 플레이하셨습니다!");
-    gameOver = true;
-    document.getElementById("shareBtn").style.display="inline-block"; // 결과 공유는 가능하게
-    return;
-  }
-
   const board=document.getElementById("board"); board.innerHTML="";
   ...
 }
