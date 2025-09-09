@@ -180,40 +180,48 @@ const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQs
 let 단어목록 = [];
 const fallbackWords = ["날왈","사이키라", "대정령", "렌더", "우사테이"];
 
-    function parseCSVFirstColumn(csvText){
-  const clean = csvText.replace(/^\uFEFF/, "");     // BOM 제거
-  const lines = clean.split(/\r?\n/);               // CRLF 대응
+function parseCSVFirstColumn(csvText){
+  // BOM 제거 + 줄 분리
+  const clean = csvText.replace(/^\uFEFF/, "");
+  const lines = clean.split(/\r?\n/);
 
-  // 첫 번째 열만 추출 → 공백 제거
+  // 첫 열만 추출
   const firstCol = lines
     .map(line => (line.split(",")[0] || "").trim())
     .filter(Boolean);
 
-  // 한글만 허용 (길이 제한 제거)
-  const onlyHangul = firstCol.filter(w => /^[가-힣]+$/.test(w));
+  // 한글만 남기되, 안 맞는 글자는 제거해서 복구 시도
+  const normalized = firstCol
+    .map(w => w.replace(/[^가-힣]/g, "")) // 한글 외 제거
+    .map(w => w.trim())
+    .filter(Boolean); // 완전히 비면 제거
 
-  return onlyHangul;
+  return normalized;
 }
 
-function loadWords(){
-  return fetch(sheetUrl + "&t=" + Date.now(), { cache: "no-store" })
-    .then(r => {
+async function loadWords(){
+  const url = sheetUrl + "&t=" + Date.now(); // 캐시 회피
+  let lastErr = null;
+
+  for (let attempt = 1; attempt <= 3; attempt++){
+    try {
+      const r = await fetch(url, { cache: "no-store" });
       if(!r.ok) throw new Error("HTTP " + r.status);
-      return r.text();
-    })
-    .then(csv => {
-  // ✅ 디버깅 로그 추가
-  console.log("[CSV raw len]", csv.length);
-  console.log("[CSV preview]", csv.slice(0, 200)); // 처음 200자 확인용
+      const csv = await r.text();
 
-  const parsed = parseCSVFirstColumn(csv);
+      console.log(`[CSV len] ${csv.length} (try ${attempt})`);
+      const parsed = parseCSVFirstColumn(csv);
+      console.log(`[Parsed] count=${parsed.length}`, parsed.slice(0,10));
 
-  // ✅ 파싱된 단어 개수와 일부 샘플 출력
-  console.log("[Parsed count]", parsed.length, parsed.slice(0, 10));
-
-  if(parsed.length === 0) throw new Error("빈 목록");
-  return parsed;
-})
+      if(parsed.length === 0) throw new Error("parsed empty");
+      return parsed;
+    } catch (e){
+      lastErr = e;
+      console.warn(`loadWords attempt ${attempt} failed:`, e);
+      await new Promise(res => setTimeout(res, 600 * attempt)); // 점진 대기
+    }
+  }
+  throw lastErr || new Error("loadWords failed");
 }
 
 // 호출부
@@ -222,10 +230,9 @@ loadWords()
   .catch(err => {
     console.error("단어 목록 로드 실패:", err);
     단어목록 = fallbackWords;
-    // 사용자에게 이유 안내 (원인 파악에 도움)
     showPopup("단어 목록을 불러오지 못했습니다. 시트를 '웹에 게시'했는지와 A열에 한글만 있는지 확인하세요.");
     initGame();
-  });
+  });  });
 
     // === 통계 ===
     function updateStats(win, tries){
