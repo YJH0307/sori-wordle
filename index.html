@@ -283,25 +283,41 @@ loadWords()
     // === 게임 초기화 ===
 
   function initGame(){
-  const start=new Date(2025,0,1),today=new Date();
-  const days=Math.floor((today-start)/(1000*60*60*24));
-  정답=단어목록[days % 단어목록.length];
-  정답낱자=[]; for(let ch of 정답) 정답낱자.push(...분리(ch));
+  const start = new Date(2025,0,1), today = new Date();
+  const days  = Math.floor((today-start)/(1000*60*60*24));
 
-  const board=document.getElementById("board"); board.innerHTML="";
-  ...
-}
+  // 1) 정답 선택(단어목록이 비어도 폴백 보장)
+  const pool = (Array.isArray(단어목록) && 단어목록.length>0) ? 단어목록 : fallbackWords;
+  정답 = pool[days % pool.length] || fallbackWords[0];
 
+  // 2) 낱자 분해 + 최종 안전장치
+  정답낱자 = [];
+  for (let ch of 정답) 정답낱자.push(...분리(ch));
+  if (!정답낱자.length) {              // 만약 분해가 비정상이라면
+    정답 = fallbackWords[0];
+    정답낱자 = [];
+    for (let ch of 정답) 정답낱자.push(...분리(ch));
+  }
 
-    // === 하루 1번 제한 ===
-function alreadyPlayedToday(){
-  const today = new Date().toISOString().slice(0,10);
-  return localStorage.getItem("played-"+today);
-}
-function markPlayedToday(){
-  const today = new Date().toISOString().slice(0,10);
-  localStorage.setItem("played-"+today,"true");
-}
+  // 3) 보드 렌더
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+  for (let r=0; r<maxRows; r++){
+    const row = document.createElement("div");
+    row.className = "row";
+    row.style.gridTemplateColumns = `repeat(${정답낱자.length}, 45px)`;
+    for (let c=0; c<정답낱자.length; c++){
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      row.appendChild(cell);
+    }
+    board.appendChild(row);
+  }
+
+  buildKeyboard();
+  console.log("[INIT] answer:", 정답, "/ letters:", 정답낱자.length); // 디버깅 로그
+    }
+
 
     // === 키보드 ===
     function buildKeyboard(){
@@ -378,7 +394,6 @@ function markPlayedToday(){
     gameOver=true;
     const tries = currentRow+1;   // ✅ 실제 시도 횟수(오프바이원 방지)
     lastTries = currentRow+1;   // ✅ 성공한 경우 몇 번째 시도인지 저장
-    markPlayedToday();
     updateStats(true, tries);
     setTimeout(()=>showPopup("정답! 🎉 ("+tries+"/6)"),600);
     document.getElementById("shareBtn").style.display="inline-block";
@@ -386,6 +401,7 @@ function markPlayedToday(){
   }
 
   // --- 다음 줄 이동 ---
+
   currentRow++;
   currentCol=0;
   currentGuess=[];
@@ -394,7 +410,6 @@ function markPlayedToday(){
   if(currentRow>=maxRows && !gameOver){
     gameOver=true;
     lastTries = "X";   // ✅ 실패한 경우 X로 저장
-    markPlayedToday();
     updateStats(false,0);
     setTimeout(()=>showPopup("실패! 정답은 "+정답),600);
     document.getElementById("shareBtn").style.display="inline-block";
