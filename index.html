@@ -40,12 +40,13 @@
   gap: 5px;
   justify-content: center;   /* ← 추가: 열 트랙 중앙 정렬 */
     }
-    .cell {
-      width: 45px; height: 45px; border: 2px solid #ccc;
-      display: flex; justify-content: center; align-items: center;
-      font-size: 22px; font-weight: bold;
-      font-family: 'Noto Sans KR', sans-serif;
-    }
+   .cell {
+  width: 45px; height: 45px; border: 2px solid #ccc;
+  display: flex; justify-content: center; align-items: center;
+  font-size: 22px; font-weight: bold;
+  font-family: 'Noto Sans KR', sans-serif;
+  border-radius: 6px;   /* ✅ 모서리를 둥글게 */
+}
     .correct { background: #6aaa64; color: white; }
     .present { background: #c9b458; color: white; }
     .absent  { background: #787c7e; color: white; }
