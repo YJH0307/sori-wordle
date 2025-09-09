@@ -265,7 +265,7 @@ loadWords()
       const days=Math.floor((today-start)/(1000*60*60*24));
       정답=단어목록[days % 단어목록.length];
       정답낱자=[]; for(let ch of 정답) 정답낱자.push(...분리(ch));
-      if(alreadyPlayedToday()){ showPopup("오늘은 이미 플레이 하셨습니다!"); gameOver=true; return; }
+
 
       const board=document.getElementById("board"); board.innerHTML="";
       for(let r=0;r<maxRows;r++){
