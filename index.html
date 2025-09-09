@@ -278,7 +278,7 @@ loadWords()
         }
         board.appendChild(row);
       }
-      buildKeyboard();
+      Keyboard();
     }
 
     // === 키보드 ===
@@ -453,7 +453,16 @@ function tryClipboardCopy(text){
 // ✅ 공유 텍스트 생성 (N/6 또는 X/6 + 블록 패턴)
 function buildShareText(){
   const tries = (lastTries===null) ? "X" : lastTries;
-  let output = `소리워들 ${tries}/6\n`;
+
+  // ✅ 오늘 날짜 (YYYY-MM-DD)
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth()+1).padStart(2,"0");
+  const dd = String(today.getDate()).padStart(2,"0");
+  const dateStr = `${yyyy}-${mm}-${dd}`;
+
+  // ✅ 첫 줄에 날짜 포함
+  let output = `소리워들 ${tries}/6 (${dateStr})\n`;
 
   // 성공이면 lastTries 만큼 줄 출력, 실패면 6줄
   const rowsToPrint = (typeof lastTries === "number") ? lastTries : maxRows;
@@ -473,6 +482,9 @@ function buildShareText(){
     }
     output += "\n";
   }
+
+  // ✅ 마지막에 사이트 주소 추가
+  output += "\nhttp://sori-wordle.com";
 
   return output;
 }
