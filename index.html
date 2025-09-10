@@ -501,7 +501,7 @@ function buildShareText(){
   const dateStr = `${yyyy}-${mm}-${dd}`;
 
   // ✅ 첫 줄에 날짜 포함
-  let output = `소리워들 ${tries}/6 (${dateStr})\n`;
+  let output = `#소리워들 ${tries}/6 (${dateStr})\n`;
 
   // 성공이면 lastTries 만큼 줄 출력, 실패면 6줄
   const rowsToPrint = (typeof lastTries === "number") ? lastTries : maxRows;
