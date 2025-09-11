@@ -509,7 +509,7 @@ function submitGuess(){
   }
 
   // --- 정답 맞춘 경우 ---
-  if(guess.join("")===정답낱자.join("")){
+if(guessWord === 정답){
     gameOver=true;
     const tries = currentRow+1;
     lastTries = currentRow+1;
