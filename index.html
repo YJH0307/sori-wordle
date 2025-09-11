@@ -28,12 +28,12 @@
     body.dark  .controls button, body.dark #shareBtn { background: #ddd; color: #000; }
 
     .board {
-  display: grid;
+  display: inline-grid;       /* ✅ block 대신 inline-grid */
   grid-template-rows: repeat(6, 1fr);
-  gap: 5px;
-  margin: 20px auto;
-  width: 100%;               /* ← 기존 max-content 대신 전체 폭 */
-  justify-items: center;     /* ← 추가: 각 행을 가로 중앙에 배치 */
+  gap: 3px;
+  margin: 20px auto;          /* ✅ 위아래 여백 + 자동 가운데 */
+  justify-items: center;
+  align-items: center;
     }
     .row {
   display: grid;
