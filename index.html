@@ -231,7 +231,22 @@
   return res;
 }
 
+// 매일 동일한 "랜덤" 단어를 뽑기 위한 함수
+function seededRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
 
+function pickDailyWord(pool) {
+  const start = new Date("2025-01-01T00:00:00+09:00"); // 기준일 한국시간
+  const today = getKSTDate(); // 이미 있는 한국시간 함수 사용
+  const days = Math.floor((today - start) / (1000*60*60*24));
+
+  // days를 시드로 삼아 매일 랜덤 인덱스 생성
+  const idx = Math.floor(seededRandom(days) * pool.length);
+  return pool[idx];
+}
+    
 // === 데이터 ===
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
 let 단어목록 = [];
@@ -316,8 +331,8 @@ function initGame(){
 
   // 1) 정답 선택(단어목록이 비어도 폴백 보장)
   const pool = (Array.isArray(단어목록) && 단어목록.length>0) ? 단어목록 : fallbackWords;
-  정답 = pool[days % pool.length] || fallbackWords[0];
-
+  정답 = pickDailyWord(pool) || fallbackWords[0];
+  
   // 2) 낱자 분해 + 최종 안전장치
   정답낱자 = [];
   for (let ch of 정답) 정답낱자.push(...분리(ch));
