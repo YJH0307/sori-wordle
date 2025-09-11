@@ -28,29 +28,47 @@
     body.dark  .controls button, body.dark #shareBtn { background: #ddd; color: #000; }
 
 .board {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  gap: 4px;                   /* ← 줄 간격 통일 */
   margin: 20px auto;
-  align-items: center;    /* 세로축 정렬 */
-  justify-content: center;
   width: 100%;
+  justify-items: center;       /* 각 행을 가로 중앙 정렬 */
 }
 
 .row {
   display: grid;
-  gap: 3px;
-  justify-content: center;   /* 행 안의 칸들을 중앙 배치 */
-  width: max-content;        /* 줄이 자기 크기만큼 차지하도록 */
-  margin: 0 auto;            /* 항상 가운데 오도록 */
+  gap: 4px;                   /* ← 칸 간격 통일 */
+  justify-content: center;    /* 칸들을 항상 중앙에 배치 */
 }
-    .cell {
-      width: 45px; height: 45px; border: 2px solid #ccc;
-      display: flex; justify-content: center; align-items: center;
-      font-size: 22px; font-weight: bold;
-      font-family: 'Noto Sans KR', sans-serif;
-      border-radius: 6px;   /* ✅ 모서리를 둥글게 */
-    }
+
+.cell {
+  width: 45px;
+  height: 45px;
+  border: 2px solid #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  font-weight: bold;
+  font-family: 'Noto Sans KR', sans-serif;
+  border-radius: 6px;
+}
+
+/* === 모바일 (480px 이하) === */
+@media (max-width: 480px) {
+  .board {
+    gap: 4px;     /* 모바일에서도 동일하게 유지 */
+  }
+  .row {
+    gap: 4px;
+  }
+  .cell {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+}
     .correct { background: #6aaa64; color: white; }
     .present { background: #c9b458; color: white; }
     .absent  { background: #787c7e; color: white; }
@@ -117,11 +135,6 @@
     #popup-close { float: right; cursor: pointer; font-size: 20px; }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
-    /* 모바일 */
-    @media (max-width: 480px) {
-      .cell { width: 34px; height: 34px; font-size: 18px; }
-      .key { font-size: 15px; }
-    }
   </style>
 </head>
 <body class="light">
