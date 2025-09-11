@@ -54,7 +54,12 @@
   font-family: 'Noto Sans KR', sans-serif;
   border-radius: 6px;
 }
+.cell.invalid {
+  background: rgba(255, 0, 0, 0.2); /* 연한 빨간색 배경 */
+  border-color: red;
+}
 
+    
 /* === 모바일 (480px 이하) === */
 @media (max-width: 480px) {
   .board {
@@ -248,6 +253,12 @@
   return res;
 }
 
+// === 유효성 검사 ===
+function isValidWord(word) {
+  // 모든 글자가 완성형 한글(가~힣)인지 확인
+  return /^[가-힣]+$/.test(word);
+}
+
 // 매일 동일한 "랜덤" 단어를 뽑기 위한 함수
 function seededRandom(seed) {
   const x = Math.sin(seed) * 10000;
@@ -401,23 +412,32 @@ function initGame(){
     function handleKey(k){
       if(gameOver) return;
       if(k==="입력"){ if(currentCol===정답낱자.length) submitGuess(); }
-      else if(k==="삭제"){
-        if(currentCol>0){ currentCol--; currentGuess.pop();
-          document.getElementById("board").children[currentRow].children[currentCol].textContent=""; }
-      } else {
-        if(currentCol<정답낱자.length){
-          currentGuess.push(k);
-          document.getElementById("board").children[currentRow].children[currentCol].textContent=k;
-          currentCol++;
-        }
-      }
+else if(k==="삭제"){
+  if(currentCol>0){
+    currentCol--;
+    currentGuess.pop();
+    const cell = document.getElementById("board").children[currentRow].children[currentCol];
+    cell.textContent="";
+    // 삭제할 때 invalid 효과 제거
+    for (let c of document.getElementById("board").children[currentRow].children) {
+      c.classList.remove("invalid");
     }
+  }
+}
 
     // === 제출 ===
     function submitGuess(){
   const guess=[...currentGuess];
   if(guess.length!==정답낱자.length) return;
-
+// --- 유효성 검사 ---
+const guessWord = currentGuess.join("");
+if (!isValidWord(guessWord)) {
+  const row = document.getElementById("board").children[currentRow].children;
+  for (let i=0; i<row.length; i++) {
+    row[i].classList.add("invalid");
+  }
+  return; // ❌ 유효하지 않으면 여기서 멈춤
+}
   const row=document.getElementById("board").children[currentRow].children;
 
   // --- 판정 준비 ---
