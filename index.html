@@ -426,19 +426,58 @@ else if(k==="삭제"){
  }
 }
 
-    // === 제출 ===
-    function submitGuess(){
+// === 낱자 배열을 합성해서 완성형 한글 단어로 만드는 함수 ===
+function combineGuessToWord(guess){
+  let combined = "";
+  for (let i = 0; i < guess.length; ){
+    let choChar = guess[i];
+
+    // 된소리 처리
+    if (i+1 < guess.length) {
+      const pair = choChar + guess[i+1];
+      if (pair === "ㄱㄱ") { choChar = "ㄲ"; i++; }
+      else if (pair === "ㄷㄷ") { choChar = "ㄸ"; i++; }
+      else if (pair === "ㅂㅂ") { choChar = "ㅃ"; i++; }
+      else if (pair === "ㅈㅈ") { choChar = "ㅉ"; i++; }
+      else if (pair === "ㅅㅅ") { choChar = "ㅆ"; i++; }
+    }
+
+    let cho = 초성.indexOf(choChar);
+    if (cho < 0) { i++; continue; }
+
+    let jung = 중성.indexOf(guess[i+1]||"");
+    if (jung < 0) { i++; continue; }
+
+    let jong = 0;
+    if (i+2 < guess.length) {
+      let idx = 종성.indexOf(guess[i+2]);
+      if (idx > 0) { jong = idx; i++; }
+    }
+
+    const syllableCode = 0xAC00 + cho*588 + jung*28 + jong;
+    combined += String.fromCharCode(syllableCode);
+    i += (jong ? 3 : 2);
+  }
+  return combined;
+}
+
+// === 제출 ===
+function submitGuess(){
   const guess=[...currentGuess];
   if(guess.length!==정답낱자.length) return;
-// --- 유효성 검사 ---
-const guessWord = currentGuess.join("");
-if (!isValidWord(guessWord)) {
-  const row = document.getElementById("board").children[currentRow].children;
-  for (let i=0; i<row.length; i++) {
-    row[i].classList.add("invalid");
+
+  // --- 낱자 배열 → 단어 합성 ---
+  const guessWord = combineGuessToWord(guess);
+
+  // --- 유효성 검사 ---
+  if (!/^[가-힣]+$/.test(guessWord)) {
+    const row = document.getElementById("board").children[currentRow].children;
+    for (let i=0; i<row.length; i++) {
+      row[i].classList.add("invalid");
+    }
+    return; // ❌ 유효하지 않으면 멈춤
   }
-  return; // ❌ 유효하지 않으면 여기서 멈춤
-}
+
   const row=document.getElementById("board").children[currentRow].children;
 
   // --- 판정 준비 ---
@@ -472,16 +511,15 @@ if (!isValidWord(guessWord)) {
   // --- 정답 맞춘 경우 ---
   if(guess.join("")===정답낱자.join("")){
     gameOver=true;
-    const tries = currentRow+1;   // ✅ 실제 시도 횟수(오프바이원 방지)
-    lastTries = currentRow+1;   // ✅ 성공한 경우 몇 번째 시도인지 저장
+    const tries = currentRow+1;
+    lastTries = currentRow+1;
     updateStats(true, tries);
     setTimeout(()=>showPopup("정답! 🎉 ("+tries+"/6)"),600);
     document.getElementById("shareBtn").style.display="inline-block";
-    return; // ✅ currentRow++ 방지 (여기서 종료)
+    return;
   }
 
   // --- 다음 줄 이동 ---
-
   currentRow++;
   currentCol=0;
   currentGuess=[];
@@ -489,13 +527,12 @@ if (!isValidWord(guessWord)) {
   // --- 실패 처리 ---
   if(currentRow>=maxRows && !gameOver){
     gameOver=true;
-    lastTries = "X";   // ✅ 실패한 경우 X로 저장
+    lastTries = "X";
     updateStats(false,0);
     setTimeout(()=>showPopup("실패! 정답은 "+정답),600);
     document.getElementById("shareBtn").style.display="inline-block";
   }
-}
-
+                }
     // === 키보드 색 업데이트 ===
     function updateKeyboard(letter,state){
       document.querySelectorAll(".key").forEach(k=>{
