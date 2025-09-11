@@ -27,26 +27,25 @@
     body.light .controls button, body.light #shareBtn { background: #eee; color: #000; }
     body.dark  .controls button, body.dark #shareBtn { background: #ddd; color: #000; }
 
-    .board {
-  display: inline-grid;       /* ✅ block 대신 inline-grid */
-  grid-template-rows: repeat(6, 1fr);
-  gap: 3px;
-  margin: 20px auto;          /* ✅ 위아래 여백 + 자동 가운데 */
-  justify-items: center;
-  align-items: center;
+   .board {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin: 20px auto;
+      align-items: center;   /* 가로축 가운데 */
     }
     .row {
-  display: grid;
-  gap: 3px;
-  justify-content: center;   /* ← 추가: 열 트랙 중앙 정렬 */
+      display: grid;
+      gap: 3px;
+      justify-content: center;   /* 각 행 안에서 가운데 정렬 */
     }
-   .cell {
-  width: 45px; height: 45px; border: 2px solid #ccc;
-  display: flex; justify-content: center; align-items: center;
-  font-size: 22px; font-weight: bold;
-  font-family: 'Noto Sans KR', sans-serif;
-  border-radius: 6px;   /* ✅ 모서리를 둥글게 */
-}
+    .cell {
+      width: 45px; height: 45px; border: 2px solid #ccc;
+      display: flex; justify-content: center; align-items: center;
+      font-size: 22px; font-weight: bold;
+      font-family: 'Noto Sans KR', sans-serif;
+      border-radius: 6px;   /* ✅ 모서리를 둥글게 */
+    }
     .correct { background: #6aaa64; color: white; }
     .present { background: #c9b458; color: white; }
     .absent  { background: #787c7e; color: white; }
