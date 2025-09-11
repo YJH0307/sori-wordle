@@ -298,11 +298,21 @@ loadWords()
       return JSON.parse(localStorage.getItem("sori-stats")||'{"played":0,"wins":0,"dist":[0,0,0,0,0,0]}');
     }
 
+    // 한국 시간(KST) 기준 날짜 반환
+function getKSTDate() {
+  // 현재 UTC 시간 + 한국 시간(UTC+9) 보정
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  return new Date(utc + (9 * 60 * 60000));
+}
+
     // === 게임 초기화 ===
 
-  function initGame(){
-  const start = new Date(2025,0,1), today = new Date();
-  const days  = Math.floor((today-start)/(1000*60*60*24));
+function initGame(){
+  const start = new Date("2025-01-01T00:00:00+09:00"); // 기준일 한국시간
+  const today = getKSTDate(); // ✅ 한국 시간 기준 날짜 가져오기
+  const days  = Math.floor((today - start) / (1000*60*60*24));
+
 
   // 1) 정답 선택(단어목록이 비어도 폴백 보장)
   const pool = (Array.isArray(단어목록) && 단어목록.length>0) ? 단어목록 : fallbackWords;
