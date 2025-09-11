@@ -488,17 +488,23 @@ function submitGuess(){
   // --- 낱자 배열 → 단어 합성 ---
   const guessWord = combineGuessToWord(guess);
 
-  // --- 유효성 검사 (사전 검증 X, 완성형 한글만) ---
-  if (!/^[가-힣]+$/.test(guessWord)) {
-    const row = document.getElementById("board").children[currentRow].children;
-    for (let i=0; i<row.length; i++) {
-      row[i].classList.add("invalid");  // 줄 전체 빨간색 강조
-    }
-    return; // ❌ 유효하지 않으면 멈춤
+// --- 유효성 검사 (하나라도 가~힣이 아니면 invalid) ---
+let valid = true;
+for (let ch of guessWord) {
+  if (!/^[가-힣]$/.test(ch)) {   // 한 글자씩 검사
+    valid = false;
+    break;
   }
+}
 
-  const row=document.getElementById("board").children[currentRow].children;
-
+if (!valid) {
+  const row = document.getElementById("board").children[currentRow].children;
+  for (let i=0; i<row.length; i++) {
+    row[i].classList.add("invalid");  // 줄 전체 빨간색 강조
+  }
+  return; // ❌ 유효하지 않으면 멈춤
+}
+  
   // --- 판정 준비 ---
   const freq={};
   for(let i=0;i<정답낱자.length;i++){
