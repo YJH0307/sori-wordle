@@ -413,7 +413,7 @@ function handleKey(k){
   if (gameOver) return;
 
   if (k === "입력") {
-    submitGuess();   // ✅ 무조건 실행
+    submitGuess();
   } 
   else if (k === "삭제") {
     if (currentCol > 0) {
@@ -432,18 +432,10 @@ function handleKey(k){
       currentGuess.push(k);
       document.getElementById("board").children[currentRow].children[currentCol].textContent = k;
       currentCol++;
-    }
-  }
-}
-
-  // ←← 글자 입력 (빠져있던 부분)
-  if (currentCol < 정답낱자.length) {
-    currentGuess.push(k);
-    document.getElementById("board").children[currentRow].children[currentCol].textContent = k;
-    currentCol++;
-    // 편집 시 invalid 해제
-    for (let c of document.getElementById("board").children[currentRow].children) {
-      c.classList.remove("invalid");
+      // 입력할 때 invalid 해제
+      for (let c of document.getElementById("board").children[currentRow].children) {
+        c.classList.remove("invalid");
+      }
     }
   }
 }
