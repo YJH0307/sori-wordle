@@ -488,11 +488,11 @@ function submitGuess(){
   // --- 낱자 배열 → 단어 합성 ---
   const guessWord = combineGuessToWord(guess);
 
-  // --- 유효성 검사 ---
+  // --- 유효성 검사 (사전 검증 X, 완성형 한글만) ---
   if (!/^[가-힣]+$/.test(guessWord)) {
     const row = document.getElementById("board").children[currentRow].children;
     for (let i=0; i<row.length; i++) {
-      row[i].classList.add("invalid");
+      row[i].classList.add("invalid");  // 줄 전체 빨간색 강조
     }
     return; // ❌ 유효하지 않으면 멈춤
   }
@@ -528,7 +528,7 @@ function submitGuess(){
   }
 
   // --- 정답 맞춘 경우 ---
-if(guessWord === 정답){
+  if(guess.join("")===정답낱자.join("")){
     gameOver=true;
     const tries = currentRow+1;
     lastTries = currentRow+1;
@@ -551,7 +551,7 @@ if(guessWord === 정답){
     setTimeout(()=>showPopup("실패! 정답은 "+정답),600);
     document.getElementById("shareBtn").style.display="inline-block";
   }
-                }
+}
     // === 키보드 색 업데이트 ===
     function updateKeyboard(letter,state){
       document.querySelectorAll(".key").forEach(k=>{
