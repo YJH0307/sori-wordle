@@ -298,38 +298,13 @@ loadWords()
       return JSON.parse(localStorage.getItem("sori-stats")||'{"played":0,"wins":0,"dist":[0,0,0,0,0,0]}');
     }
 
-    // 한국시간(KST) 기준 날짜/일수 계산
-const MS_PER_DAY = 86400000;
-
-// 2025-01-01 00:00 KST == 2024-12-31 15:00:00 UTC
-function dayIndexKST(){
-  const anchorUTC = Date.UTC(2024, 11, 31, 15, 0, 0);
-  return Math.floor((Date.now() - anchorUTC) / MS_PER_DAY);
-}
-
-function todayStrKST(){
-  const KST = 9 * 60 * 60 * 1000;
-  return new Date(Date.now() + KST).toISOString().slice(0,10); // YYYY-MM-DD
-}
     // === 게임 초기화 ===
 
   function initGame(){
-  const idx = dayIndexKST();
-const pool = (Array.isArray(단어목록) && 단어목록.length>0) ? 단어목록 : fallbackWords;
+  const start = new Date(2025,0,1), today = new Date();
+  const days  = Math.floor((today-start)/(1000*60*60*24));
 
-// 그날 첫 방문에 고정(기기 로컬 저장)
-const key = "sori-answer-" + todayStrKST();
-let pick = localStorage.getItem(key);
-if (!pick) {
-  pick = pool[idx % pool.length];
-  localStorage.setItem(key, pick);
-}
-
-정답 = pick;
-정답낱자 = [];
-for (const ch of 정답) 정답낱자.push(...분리(ch));
-
-    // 1) 정답 선택(단어목록이 비어도 폴백 보장)
+  // 1) 정답 선택(단어목록이 비어도 폴백 보장)
   const pool = (Array.isArray(단어목록) && 단어목록.length>0) ? 단어목록 : fallbackWords;
   정답 = pool[days % pool.length] || fallbackWords[0];
 
