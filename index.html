@@ -409,21 +409,40 @@ function initGame(){
     }
 
     // === 키 입력 ===
-    function handleKey(k){
-      if(gameOver) return;
-      if(k==="입력"){ if(currentCol===정답낱자.length) submitGuess(); }
-else if(k==="삭제"){
-  if(currentCol>0){
-    currentCol--;
-    currentGuess.pop();
-    const cell = document.getElementById("board").children[currentRow].children[currentCol];
-    cell.textContent="";
-    // 삭제할 때 invalid 효과 제거
+function handleKey(k){
+  if (gameOver) return;
+
+  // 제출
+  if (k === "입력") {
+    if (currentCol === 정답낱자.length) submitGuess();
+    return;
+  }
+
+  // 삭제
+  if (k === "삭제") {
+    if (currentCol > 0) {
+      currentCol--;
+      currentGuess.pop();
+      const cell = document.getElementById("board").children[currentRow].children[currentCol];
+      cell.textContent = "";
+      // 편집 시 invalid 해제
+      for (let c of document.getElementById("board").children[currentRow].children) {
+        c.classList.remove("invalid");
+      }
+    }
+    return;
+  }
+
+  // ←← 글자 입력 (빠져있던 부분)
+  if (currentCol < 정답낱자.length) {
+    currentGuess.push(k);
+    document.getElementById("board").children[currentRow].children[currentCol].textContent = k;
+    currentCol++;
+    // 편집 시 invalid 해제
     for (let c of document.getElementById("board").children[currentRow].children) {
       c.classList.remove("invalid");
     }
   }
- }
 }
 
 // === 낱자 배열을 합성해서 완성형 한글 단어로 만드는 함수 ===
