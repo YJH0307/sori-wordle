@@ -252,7 +252,7 @@
 
   return res;
 }
-<script>
+    
 // === 유효성(자모 시퀀스) 검사 유틸 ===
 const 된소리쌍   = {'ㄱㄱ':'ㄲ','ㄷㄷ':'ㄸ','ㅂㅂ':'ㅃ','ㅈㅈ':'ㅉ','ㅅㅅ':'ㅆ'};
 const 모음합치   = {'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ','ㅑㅣ':'ㅒ','ㅕㅣ':'ㅖ'};
@@ -546,7 +546,7 @@ function submitGuess() {
 
   // --- 유효성 검사 ---
   if (!isValidJamoSequence(guess)) {
-    markInvalidRow(currentRow); // 빨간색 효과
+    markInvalidRow(); // 빨간색 효과
     return;
   }
 
