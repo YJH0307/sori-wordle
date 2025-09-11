@@ -408,30 +408,33 @@ function initGame(){
       });
     }
 
-    // === 키 입력 ===
+// === 키 입력 ===
 function handleKey(k){
   if (gameOver) return;
 
-  // 제출
   if (k === "입력") {
-    if (currentCol === 정답낱자.length) submitGuess();
-    return;
-  }
-
-  // 삭제
-  if (k === "삭제") {
+    submitGuess();   // ✅ 무조건 실행
+  } 
+  else if (k === "삭제") {
     if (currentCol > 0) {
       currentCol--;
       currentGuess.pop();
       const cell = document.getElementById("board").children[currentRow].children[currentCol];
       cell.textContent = "";
-      // 편집 시 invalid 해제
+      // 삭제 시 invalid 효과 제거
       for (let c of document.getElementById("board").children[currentRow].children) {
         c.classList.remove("invalid");
       }
     }
-    return;
+  } 
+  else {
+    if (currentCol < 정답낱자.length) {
+      currentGuess.push(k);
+      document.getElementById("board").children[currentRow].children[currentCol].textContent = k;
+      currentCol++;
+    }
   }
+}
 
   // ←← 글자 입력 (빠져있던 부분)
   if (currentCol < 정답낱자.length) {
@@ -482,29 +485,30 @@ function combineGuessToWord(guess){
 
 // === 제출 ===
 function submitGuess(){
-  const guess=[...currentGuess];
-  if(guess.length!==정답낱자.length) return;
+  const guess = [...currentGuess];
+
+  // --- 낱자 수 체크 ---
+  if (guess.length !== 정답낱자.length) {
+    return;  // 칸이 다 안 채워졌으면 그냥 무시
+  }
 
   // --- 낱자 배열 → 단어 합성 ---
   const guessWord = combineGuessToWord(guess);
 
-// --- 유효성 검사 (하나라도 가~힣이 아니면 invalid) ---
-let valid = true;
-for (let ch of guessWord) {
-  if (!/^[가-힣]$/.test(ch)) {   // 한 글자씩 검사
-    valid = false;
-    break;
+  // --- 유효성 검사 ---
+  if (
+    guessWord.length === 0 || 
+    ![...guessWord].every(ch => /[가-힣]/.test(ch))
+  ) {
+    const row = document.getElementById("board").children[currentRow].children;
+    for (let i=0; i<row.length; i++) {
+      row[i].classList.add("invalid");
+    }
+    return; // ❌ 유효하지 않으면 멈춤
   }
-}
 
-if (!valid) {
-  const row = document.getElementById("board").children[currentRow].children;
-  for (let i=0; i<row.length; i++) {
-    row[i].classList.add("invalid");  // 줄 전체 빨간색 강조
-  }
-  return; // ❌ 유효하지 않으면 멈춤
-}
-  
+  const row=document.getElementById("board").children[currentRow].children;
+
   // --- 판정 준비 ---
   const freq={};
   for(let i=0;i<정답낱자.length;i++){
