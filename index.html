@@ -478,76 +478,73 @@ function combineGuessToWord(guess){
 // === 제출 ===
 function submitGuess(){
   const guess = [...currentGuess];
+  if (guess.length !== 정답낱자.length) return;
 
-  // --- 낱자 수 체크 ---
-  if (guess.length !== 정답낱자.length) {
-    return;  // 칸이 다 안 채워졌으면 그냥 무시
-  }
-
-  // --- 낱자 배열 → 단어 합성 ---
+  // --- 낱자 배열 → 완성형 단어 ---
   const guessWord = combineGuessToWord(guess);
 
   // --- 유효성 검사 ---
-  if (
-    guessWord.length === 0 || 
-    ![...guessWord].every(ch => /[가-힣]/.test(ch))
-  ) {
+  if (guessWord.length === 0 || !/^[가-힣]+$/.test(guessWord)) {
     const row = document.getElementById("board").children[currentRow].children;
     for (let i=0; i<row.length; i++) {
       row[i].classList.add("invalid");
     }
-    return; // ❌ 유효하지 않으면 멈춤
+    return;
   }
 
-  const row=document.getElementById("board").children[currentRow].children;
+  const row = document.getElementById("board").children[currentRow].children;
 
-  // --- 판정 준비 ---
-  const freq={};
-  for(let i=0;i<정답낱자.length;i++){
-    freq[정답낱자[i]]=(freq[정답낱자[i]]||0)+1;
-  }
+  // --- 정답 단어를 글자 단위로 분해 ---
+  const 정답글자 = [...정답];      // 예: "달력" → ["달","력"]
+  const 추측글자 = [...guessWord]; // 예: "닭력" → ["닭","력"]
 
-  const result=new Array(정답낱자.length).fill("absent");
-  for(let i=0;i<정답낱자.length;i++){
-    if(guess[i]===정답낱자[i]){
-      result[i]="correct";
-      freq[guess[i]]--;
+  const freq = {};
+  정답글자.forEach(ch => {
+    freq[ch] = (freq[ch] || 0) + 1;
+  });
+
+  const result = new Array(정답글자.length).fill("absent");
+
+  // 1차: 위치·글자 일치 확인
+  for (let i=0; i<정답글자.length; i++) {
+    if (추측글자[i] === 정답글자[i]) {
+      result[i] = "correct";
+      freq[추측글자[i]]--;
     }
   }
-  for(let i=0;i<정답낱자.length;i++){
-    if(result[i]==="correct") continue;
-    if(freq[guess[i]]>0){
-      result[i]="present";
-      freq[guess[i]]--;
+
+  // 2차: 포함 여부 확인
+  for (let i=0; i<정답글자.length; i++) {
+    if (result[i] === "correct") continue;
+    if (freq[추측글자[i]] > 0) {
+      result[i] = "present";
+      freq[추측글자[i]]--;
     }
   }
 
-  // --- 칸 색칠 + 키보드 갱신 ---
-  for(let i=0;i<정답낱자.length;i++){
-    row[i].textContent=guess[i];
+  // --- 칸 색칠 + 키보드 업데이트 ---
+  for (let i=0; i<정답글자.length; i++) {
+    row[i].textContent = 추측글자[i];   // 낱자가 아니라 글자 단위
     row[i].classList.add(result[i]);
-    updateKeyboard(guess[i],result[i]);
+    updateKeyboard(추측글자[i], result[i]);
   }
 
-  // --- 정답 맞춘 경우 ---
-  if(guess.join("")===정답낱자.join("")){
-    gameOver=true;
-    const tries = currentRow+1;
+  // --- 정답 여부 ---
+  if (guessWord === 정답) {
+    gameOver = true;
     lastTries = currentRow+1;
-    updateStats(true, tries);
-    setTimeout(()=>showPopup("정답! 🎉 ("+tries+"/6)"),600);
+    updateStats(true, lastTries);
+    setTimeout(()=>showPopup("정답! 🎉 ("+lastTries+"/6)"),600);
     document.getElementById("shareBtn").style.display="inline-block";
     return;
   }
 
-  // --- 다음 줄 이동 ---
   currentRow++;
   currentCol=0;
   currentGuess=[];
 
-  // --- 실패 처리 ---
-  if(currentRow>=maxRows && !gameOver){
-    gameOver=true;
+  if (currentRow >= maxRows && !gameOver) {
+    gameOver = true;
     lastTries = "X";
     updateStats(false,0);
     setTimeout(()=>showPopup("실패! 정답은 "+정답),600);
