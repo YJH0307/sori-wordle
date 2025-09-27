@@ -413,29 +413,48 @@ function getKSTDate() {
   const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
   return new Date(utc + (9 * 60 * 60000));
 }
-
+    
+// === 퍼즐 번호/정답 캐시 (오늘 고정) ===
+function getPuzzleNo() {
+  const start = new Date("2025-01-01T00:00:00+09:00"); // 기준일 KST
+  const today = getKSTDate(); // 위 함수 사용
+  return Math.floor((today - start) / (1000 * 60 * 60 * 24));
+}
+function saveTodayAnswer(answer) {
+  localStorage.setItem("sori-answer-" + getPuzzleNo(), String(answer));
+}
+function loadTodayAnswer() {
+  return localStorage.getItem("sori-answer-" + getPuzzleNo());
+}
+    
     // === 게임 초기화 ===
 
 function initGame(){
-  const start = new Date("2025-01-01T00:00:00+09:00"); // 기준일 한국시간
-  const today = getKSTDate(); // ✅ 한국 시간 기준 날짜 가져오기
-  const days  = Math.floor((today - start) / (1000*60*60*24));
+  // 1) 풀 준비(네 기존 로직 유지)
+  const pool = (Array.isArray(단어목록) && 단어목록.length > 0) ? 단어목록 : fallbackWords;
 
-
-  // 1) 정답 선택(단어목록이 비어도 폴백 보장)
-  const pool = (Array.isArray(단어목록) && 단어목록.length>0) ? 단어목록 : fallbackWords;
-  정답 = pickDailyWord(pool) || fallbackWords[0];
-  
-  // 2) 낱자 분해 + 최종 안전장치
-  정답낱자 = [];
-  for (let ch of 정답) 정답낱자.push(...분리(ch));
-  if (!정답낱자.length) {              // 만약 분해가 비정상이라면
-    정답 = fallbackWords[0];
-    정답낱자 = [];
-    for (let ch of 정답) 정답낱자.push(...분리(ch));
+  // 2) 오늘 정답: 캐시에 있으면 그걸로 고정, 없으면 선택 후 저장
+  const cached = loadTodayAnswer();
+  if (cached && typeof cached === "string" && cached.trim()) {
+    정답 = cached.trim();
+  } else {
+    정답 = pickDailyWord(pool) || (fallbackWords[0] || "가");
+    saveTodayAnswer(정답);
   }
 
-  // 3) 보드 렌더
+  // 3) 낱자 분해 (네 기존 로직)
+  정답낱자 = [];
+  for (let ch of 정답) 정답낱자.push(...분리(ch));
+
+  // 안전장치: 분해 실패 시 풀 첫 항목으로 대체하고 캐시도 갱신
+  if (!정답낱자.length) {
+    정답 = pool[0] || (fallbackWords[0] || "가");
+    정답낱자 = [];
+    for (let ch of 정답) 정답낱자.push(...분리(ch));
+    saveTodayAnswer(정답);
+  }
+
+  // 4) 보드 렌더 (네 기존 로직)
   const board = document.getElementById("board");
   board.innerHTML = "";
   for (let r=0; r<maxRows; r++){
@@ -450,10 +469,8 @@ function initGame(){
   }
 
   buildKeyboard();
-  console.log("[INIT] answer:", 정답, "/ letters:", 정답낱자.length); // 디버깅 로그
-    }
-
-
+  console.log("[INIT] puzzleNo=", getPuzzleNo(), "answer=", 정답);
+}
     // === 키보드 ===
     function buildKeyboard(){
       const rows=[["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ","ㅐ","ㅔ"],
