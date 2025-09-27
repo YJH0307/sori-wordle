@@ -200,17 +200,7 @@
     setTimeout(openHelpPopup, 500);
     localStorage.setItem(todayKey,"true");
   }
-// === 날짜/정답 저장 유틸 ===
-function getDateStrKST(){
-  const d = getKSTDate();
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const day = String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
-function todayAnswerKey(){
-  return `sori-answer-${getDateStrKST()}`;
-}
+
     // === 테마 ===
     function loadTheme() {
       const t = localStorage.getItem('sori-wordle-theme') || 'light';
@@ -334,28 +324,17 @@ function isValidWord(word) {
   return /^[가-힣]+$/.test(word);
 }
 
-// 고정 섞기용 해시(FNV-1a)
-function hashStr(s){
-  let h = 2166136261 >>> 0;
-  for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h>>>0;
+// 매일 동일한 "랜덤" 단어를 뽑기 위한 함수
+function seededRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
 }
-const SALT = "SORI-2025-SCHEDULE";
-function makeFixedSchedule(pool){
-  return [...pool].sort((a,b)=>{
-    const ha = hashStr(a+SALT), hb = hashStr(b+SALT);
-    if (ha!==hb) return ha-hb;
-    return a<b?-1:a>b?1:0;
-  });
-}
-function pickDailyWord(pool){
-  const start = new Date("2025-01-01T00:00:00+09:00");
-  const today = getKSTDate();
-  const days  = Math.floor((today - start) / (1000*60*60*24));
-  const schedule = makeFixedSchedule(pool);
-  if (schedule.length===0) return null;
-  return schedule[days % schedule.length];
-}
+
+function pickDailyWord(pool) {
+  const start = new Date("2025-01-01T00:00:00+09:00"); // 기준일 한국시간
+  const today = getKSTDate(); // 이미 있는 한국시간 함수 사용
+  const days = Math.floor((today - start) / (1000*60*60*24));
+
   // days를 시드로 삼아 매일 랜덤 인덱스 생성
   const idx = Math.floor(seededRandom(days) * pool.length);
   return pool[idx];
@@ -443,16 +422,10 @@ function initGame(){
   const days  = Math.floor((today - start) / (1000*60*60*24));
 
 
-// 1) 정답 선택(당일 고정)
-const pool = (Array.isArray(단어목록) && 단어목록.length>0) ? 단어목록 : fallbackWords;
-const key = todayAnswerKey();
-let cached = localStorage.getItem(key);
-if (cached && cached.trim()) {
-  정답 = cached;
-} else {
+  // 1) 정답 선택(단어목록이 비어도 폴백 보장)
+  const pool = (Array.isArray(단어목록) && 단어목록.length>0) ? 단어목록 : fallbackWords;
   정답 = pickDailyWord(pool) || fallbackWords[0];
-  localStorage.setItem(key, 정답);
-}
+  
   // 2) 낱자 분해 + 최종 안전장치
   정답낱자 = [];
   for (let ch of 정답) 정답낱자.push(...분리(ch));
