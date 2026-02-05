@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700;900&display=swap" rel="stylesheet">
   <style>
+    /* [원본 스타일 코드 시작] [cite: 1-36] */
     body {
       margin: 0; padding: 20px;
       display: flex; flex-direction: column;
@@ -27,53 +28,44 @@
     body.light .controls button, body.light #shareBtn { background: #eee; color: #000; }
     body.dark  .controls button, body.dark #shareBtn { background: #ddd; color: #000; }
 
-.board {
-  display: grid;
-  grid-template-rows: repeat(6, 1fr);
-  gap: 4px;                   /* ← 줄 간격 통일 */
-  margin: 20px auto;
-  width: 100%;
-  justify-items: center;       /* 각 행을 가로 중앙 정렬 */
-}
+    .board {
+      display: grid;
+      grid-template-rows: repeat(6, 1fr);
+      gap: 4px;                   /* ← 줄 간격 통일 [cite: 9] */
+      margin: 20px auto;
+      width: 100%;
+      justify-items: center;      /* 각 행을 가로 중앙 정렬 [cite: 10] */
+    }
 
-.row {
-  display: flex;
-  gap: 4px;                   /* ← 칸 간격 통일 */
-  justify-content: center;    /* 칸들을 항상 중앙에 배치 */
-}
+    .row {
+      display: flex;
+      gap: 4px;                   /* ← 칸 간격 통일 [cite: 11] */
+      justify-content: center;    /* 칸들을 항상 중앙에 배치 [cite: 11] */
+    }
 
-.cell {
-  width: 45px;
-  height: 45px;
-  border: 2px solid #ccc;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 22px;
-  font-weight: bold;
-  font-family: 'Noto Sans KR', sans-serif;
-  border-radius: 6px;
-}
-.cell.invalid {
-  background: rgba(255, 0, 0, 0.2); /* 연한 빨간색 배경 */
-  border-color: red;
-}
-
+    .cell {
+      width: 45px;
+      height: 45px;
+      border: 2px solid #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 22px;
+      font-weight: bold;
+      font-family: 'Noto Sans KR', sans-serif;
+      border-radius: 6px;
+    }
+    .cell.invalid {
+      background: rgba(255, 0, 0, 0.2); /* 연한 빨간색 배경 [cite: 14] */
+      border-color: red;
+    }
     
-/* === 모바일 (480px 이하) === */
-@media (max-width: 480px) {
-  .board {
-    gap: 4px;     /* 모바일에서도 동일하게 유지 */
-  }
-  .row {
-    gap: 4px;
-  }
-  .cell {
-    width: 34px;
-    height: 34px;
-    font-size: 18px;
-  }
-}
+    /* === 모바일 (480px 이하) === [cite: 15-17] */
+    @media (max-width: 480px) {
+      .board { gap: 4px; }
+      .row { gap: 4px; }
+      .cell { width: 34px; height: 34px; font-size: 18px; }
+    }
     .correct { background: #6aaa64; color: white; }
     .present { background: #c9b458; color: white; }
     .absent  { background: #787c7e; color: white; }
@@ -84,7 +76,7 @@
 
     #shareBtn { display: none; }
 
-    /* === 키보드 === */
+    /* === 키보드 === [cite: 22-31] */
     #keyboard {
       display: flex;
       flex-direction: column;
@@ -123,7 +115,7 @@
 
     .key.wide { flex: 1.5; }
 
-    /* 팝업 */
+    /* 팝업 [cite: 32-36] */
     .popup {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.6); display: flex;
@@ -139,7 +131,6 @@
     .popup-content h2 { margin-top: 0; font-weight: 900; }
     #popup-close { float: right; cursor: pointer; font-size: 20px; }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-
   </style>
 </head>
 <body class="light">
@@ -157,12 +148,11 @@
 
   <div id="keyboard"></div>
 
-  <!-- 팝업 -->
   <div id="popup" class="popup hidden">
     <div class="popup-content">
       <span id="popup-close">×</span>
       <h2>오늘의 소리워들</h2>
-      <p id="popup-message"></p>
+      <p id="popup-message" style="white-space: pre-wrap;"></p>
     </div>
   </div>
 
@@ -172,20 +162,19 @@
     <h2>게임 규칙</h2>
     <div style="text-align:center;line-height:1.8;font-size:15px;">
       <div style="font-size:20px;font-weight:900;margin-bottom:8px;">소리워들</div>
-      <div>소리MAD와 관련된 모든 단어가 제시어입니다.</div>
-      <div>하루에 문제 1개, 기회 6번.</div>
+      <div>소리MAD와 관련된 모든 단어가 제시어입니다. [cite: 37]</div>
+      <div>하루에 문제 1개, 기회 6번. [cite: 37]</div>
       <div style="margin-top:8px;">색의 의미</div>
       <div>🟩 위치·낱자 모두 일치</div>
       <div>🟨 단어 안에 있지만 위치 다름</div>
       <div>⬜ 단어에 없음</div>
-      <div style="font-size:12px;color:#888;margin-top:10px;">“소리워들”은 자정에 갱신됩니다.</div>
+      <div style="font-size:12px;color:#888;margin-top:10px;">“소리워들”은 자정에 갱신됩니다. [cite: 37]</div>
     </div>
   </div>
 </div>
   
-  <script>
-
-      // === 규칙 팝업 ===
+<script>
+  /* === 원본 로직 유지 시작 [cite: 38-143] === */
   function openHelpPopup(){
     document.getElementById("helpPopup").classList.remove("hidden");
   }
@@ -194,517 +183,295 @@
   }
   document.getElementById("help-close").onclick = closeHelpPopup;
 
-  // 당일 첫 접속 시 규칙 팝업 자동 표시
   const todayKey = "help-seen-" + new Date().toISOString().slice(0,10);
   if(!localStorage.getItem(todayKey)){
     setTimeout(openHelpPopup, 500);
     localStorage.setItem(todayKey,"true");
   }
 
-    // === 테마 ===
-    function loadTheme() {
-      const t = localStorage.getItem('sori-wordle-theme') || 'light';
-      document.body.className = t;
-      document.getElementById('themeBtn').textContent =
-        t === 'light' ? '🌙 다크 모드' : '☀️ 라이트 모드';
-    }
-    function toggleTheme() {
-      const cur = document.body.className === 'light' ? 'dark' : 'light';
-      document.body.className = cur;
-      localStorage.setItem('sori-wordle-theme', cur);
-      loadTheme();
-    }
+  function loadTheme() {
+    const t = localStorage.getItem('sori-wordle-theme') || 'light';
+    document.body.className = t;
+    document.getElementById('themeBtn').textContent =
+      t === 'light' ? '🌙 다크 모드' : '☀️ 라이트 모드';
+  }
+  function toggleTheme() {
+    const cur = document.body.className === 'light' ? 'dark' : 'light';
+    document.body.className = cur;
+    localStorage.setItem('sori-wordle-theme', cur);
     loadTheme();
-
-    // === 한글 분리 ===
-    const 초성=["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
-    const 중성=["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"];
-    const 종성=["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
-    const 꼬들이중모음={ "ㅘ":["ㅗ","ㅏ"],"ㅙ":["ㅗ","ㅐ"],"ㅚ":["ㅗ","ㅣ"],"ㅝ":["ㅜ","ㅓ"],"ㅞ":["ㅜ","ㅔ"],"ㅟ":["ㅜ","ㅣ"],"ㅢ":["ㅡ","ㅣ"],"ㅒ":["ㅑ","ㅣ"],"ㅖ":["ㅕ","ㅣ"] };
-    const 꼬들이중받침={ "ㄳ":["ㄱ","ㅅ"],"ㄵ":["ㄴ","ㅈ"],"ㄶ":["ㄴ","ㅎ"],"ㄺ":["ㄹ","ㄱ"],"ㄻ":["ㄹ","ㅁ"],"ㄼ":["ㄹ","ㅂ"],"ㄽ":["ㄹ","ㅅ"],"ㄾ":["ㄹ","ㅌ"],"ㄿ":["ㄹ","ㅍ"],"ㅀ":["ㄹ","ㅎ"],"ㅄ":["ㅂ","ㅅ"] };
-    const 꼬들된소리 = {"ㄲ":["ㄱ","ㄱ"], "ㄸ":["ㄷ","ㄷ"], "ㅃ":["ㅂ","ㅂ"], "ㅉ":["ㅈ","ㅈ"], "ㅆ":["ㅅ","ㅅ"]
-};
-
-    function 분리(ch){
-  const code=ch.charCodeAt(0)-0xAC00;
-  if(code<0||code>11171) return [ch];
-
-  const cho=Math.floor(code/588), jung=Math.floor((code-cho*588)/28), jong=code%28;
-  let res=[];
-
-  // 초성 처리: 된소리면 분해
-  const choChar=초성[cho];
-  if(꼬들된소리[choChar]) res.push(...꼬들된소리[choChar]);
-  else res.push(choChar);
-
-  // 중성 처리: 이중모음 분해
-  const jungChar=중성[jung];
-  if(꼬들이중모음[jungChar]) res.push(...꼬들이중모음[jungChar]);
-  else res.push(jungChar);
-
-  // 종성 처리: 이중받침/된소리 분해
-  if(jong!==0){
-    const jongChar=종성[jong];
-    if(꼬들이중받침[jongChar]) res.push(...꼬들이중받침[jongChar]);
-    else if(꼬들된소리[jongChar]) res.push(...꼬들된소리[jongChar]);  // ㄲ, ㅆ 처리
-    else res.push(jongChar);
   }
+  loadTheme();
 
-  return res;
-}
+  // === 한글 분리 [cite: 45-51] ===
+  const 초성=["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+  const 중성=["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"];
+  const 종성=["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+  const 꼬들이중모음={ "ㅘ":["ㅗ","ㅏ"],"ㅙ":["ㅗ","ㅐ"],"ㅚ":["ㅗ","ㅣ"],"ㅝ":["ㅜ","ㅓ"],"ㅞ":["ㅜ","ㅔ"],"ㅟ":["ㅜ","ㅣ"],"ㅢ":["ㅡ","ㅣ"],"ㅒ":["ㅑ","ㅣ"],"ㅖ":["ㅕ","ㅣ"] };
+  const 꼬들이중받침={ "ㄳ":["ㄱ","ㅅ"],"ㄵ":["ㄴ","ㅈ"],"ㄶ":["ㄴ","ㅎ"],"ㄺ":["ㄹ","ㄱ"],"ㄻ":["ㄹ","ㅁ"],"ㄼ":["ㄹ","ㅂ"],"ㄽ":["ㄹ","ㅅ"],"ㄾ":["ㄹ","ㅌ"],"ㄿ":["ㄹ","ㅍ"],"ㅀ":["ㄹ","ㅎ"],"ㅄ":["ㅂ","ㅅ"] };
+  const 꼬들된소리 = {"ㄲ":["ㄱ","ㄱ"], "ㄸ":["ㄷ","ㄷ"], "ㅃ":["ㅂ","ㅂ"], "ㅉ":["ㅈ","ㅈ"], "ㅆ":["ㅅ","ㅅ"]};
+
+  function 분리(ch){
+    const code=ch.charCodeAt(0)-0xAC00;
+    if(code<0||code>11171) return [ch];
+    const cho=Math.floor(code/588), jung=Math.floor((code-cho*588)/28), jong=code%28;
+    let res=[];
+    const choChar=초성[cho];
+    if(꼬들된소리[choChar]) res.push(...꼬들된소리[choChar]); else res.push(choChar);
+    const jungChar=중성[jung];
+    if(꼬들이중모음[jungChar]) res.push(...꼬들이중모음[jungChar]); else res.push(jungChar);
+    if(jong!==0){
+      const jongChar=종성[jong];
+      if(꼬들이중받침[jongChar]) res.push(...꼬들이중받침[jongChar]);
+      else if(꼬들된소리[jongChar]) res.push(...꼬들된소리[jongChar]);
+      else res.push(jongChar);
+    }
+    return res;
+  }
     
-// === 유효성(자모 시퀀스) 검사 유틸 ===
-const 된소리쌍   = {'ㄱㄱ':'ㄲ','ㄷㄷ':'ㄸ','ㅂㅂ':'ㅃ','ㅈㅈ':'ㅉ','ㅅㅅ':'ㅆ'};
-const 모음합치   = {'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ','ㅑㅣ':'ㅒ','ㅕㅣ':'ㅖ'};
-const 받침합치   = {'ㄱㅅ':'ㄳ','ㄴㅈ':'ㄵ','ㄴㅎ':'ㄶ','ㄹㄱ':'ㄺ','ㄹㅁ':'ㄻ','ㄹㅂ':'ㄼ','ㄹㅅ':'ㄽ','ㄹㅌ':'ㄾ','ㄹㅍ':'ㄿ','ㄹㅎ':'ㅀ','ㅂㅅ':'ㅄ','ㄱㄱ':'ㄲ','ㅅㅅ':'ㅆ'};
+  // === 유효성 검사 유틸 [cite: 52-65] ===
+  const 된소리쌍 = {'ㄱㄱ':'ㄲ','ㄷㄷ':'ㄸ','ㅂㅂ':'ㅃ','ㅈㅈ':'ㅉ','ㅅㅅ':'ㅆ'};
+  const 모음합치 = {'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ','ㅑㅣ':'ㅒ','ㅕㅣ':'ㅖ'};
+  const 받침합치 = {'ㄱㅅ':'ㄳ','ㄴㅈ':'ㄵ','ㄴㅎ':'ㄶ','ㄹㄱ':'ㄺ','ㄹㅁ':'ㄻ','ㄹㅂ':'ㄼ','ㄹㅅ':'ㄽ','ㄹㅌ':'ㄾ','ㄹㅍ':'ㄿ','ㄹㅎ':'ㅀ','ㅂㅅ':'ㅄ','ㄱㄱ':'ㄲ','ㅅㅅ':'ㅆ'};
+  function is초성(x){ return 초성.includes(x); }
+  function is중성(x){ return 중성.includes(x); }
+  function is종성(x){ return 종성.includes(x) && x !== ""; }
+  function canStartSyllable(a,b){ if (is초성(a)) return true; const pair = (a||'') + (b||''); return !!된소리쌍[pair]; }
 
-function is초성(x){ return 초성.includes(x); }
-function is중성(x){ return 중성.includes(x); }
-function is종성(x){ return 종성.includes(x) && x !== ""; }
-
-// 다음 토큰들이 새 음절 시작이 될 수 있는지(초성 또는 된소리 쌍)
-function canStartSyllable(a,b){
-  if (is초성(a)) return true;
-  const pair = (a||'') + (b||'');
-  return !!된소리쌍[pair];
-}
-
-// 자모 배열이 (초성+중성(+종성))^N 형태인지 엄격 검증
-function isValidJamoSequence(seq){
-  let i = 0, n = seq.length;
-  while (i < n){
-    // 1) 초성 (된소리 허용: ㄱㄱ→ㄲ 등)
-    let cho = seq[i++];
-    const tensify = 된소리쌍[cho + (seq[i]||'')];
-    if (tensify){ cho = tensify; i++; }
-    if (!is초성(cho)) return false;
-
-    // 2) 중성 (단모음 또는 이중모음: ㅗ+ㅏ→ㅘ 등)
-    if (i >= n) return false;
-    let jung1 = seq[i++], jung = jung1;
-    const combV = 모음합치[jung1 + (seq[i]||'')];
-    if (combV){ jung = combV; i++; }
-    if (!is중성(jung)) return false;
-
-    // 3) 종성(선택) — 있으면 소비, 없으면 그대로 다음 음절
-    if (i < n){
-      // 이중받침 우선 시도 (다음이 끝이거나 새 음절 시작이어야 함)
-      const combF = 받침합치[seq[i] + (seq[i+1]||'')];
-      if (combF){
-        if (i+2 >= n || canStartSyllable(seq[i+2], seq[i+3])){
-          i += 2; 
-          continue;
-        }
-      }
-      // 단일 받침 시도 (역시 다음이 끝/새 음절 시작이어야 함)
-      if (is종성(seq[i])){
-        if (i+1 >= n || canStartSyllable(seq[i+1], seq[i+2])){
-          i += 1;
-        }
+  function isValidJamoSequence(seq){
+    let i = 0, n = seq.length;
+    while (i < n){
+      let cho = seq[i++];
+      const tensify = 된소리쌍[cho + (seq[i]||'')];
+      if (tensify){ cho = tensify; i++; }
+      if (!is초성(cho)) return false;
+      if (i >= n) return false;
+      let jung1 = seq[i++], jung = jung1;
+      const combV = 모음합치[jung1 + (seq[i]||'')];
+      if (combV){ jung = combV; i++; }
+      if (!is중성(jung)) return false;
+      if (i < n){
+        const combF = 받침합치[seq[i] + (seq[i+1]||'')];
+        if (combF){ if (i+2 >= n || canStartSyllable(seq[i+2], seq[i+3])){ i += 2; continue; } }
+        if (is종성(seq[i])){ if (i+1 >= n || canStartSyllable(seq[i+1], seq[i+2])){ i += 1; } }
       }
     }
+    return i === n;
   }
-  return i === n;
-}
 
-// 행 invalid 표시/해제
-function markInvalidRow(){
-  const rowEls = document.getElementById("board").children[currentRow].children;
-  for (const c of rowEls) c.classList.add("invalid");
-}
-function clearInvalidRow(){
-  const rowEls = document.getElementById("board").children[currentRow].children;
-  for (const c of rowEls) c.classList.remove("invalid");
-}
+  function markInvalidRow(){
+    const rowEls = document.getElementById("board").children[currentRow].children;
+    for (const c of rowEls) c.classList.add("invalid");
+  }
+  function clearInvalidRow(){
+    const rowEls = document.getElementById("board").children[currentRow].children;
+    for (const c of rowEls) c.classList.remove("invalid");
+  }
 
-  
-// === 유효성 검사 ===
-function isValidWord(word) {
-  // 모든 글자가 완성형 한글(가~힣)인지 확인
-  return /^[가-힣]+$/.test(word);
-}
+  // === 데이터 및 전역 상태 [cite: 66-78] ===
+  const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
+  let 단어목록 = [];
+  const fallbackWords = ["날왈","사이키라", "대정령", "렌더", "우사테이"];
+  let 정답, 정답낱자;
+  const maxRows = 6;
+  let currentRow = 0, currentCol = 0, gameOver = false, currentGuess = [], lastTries = null;
 
-// 매일 동일한 "랜덤" 단어를 뽑기 위한 함수
-function seededRandom(seed) {
-  const x = Math.sin(seed) * 10000;
-  return x - Math.floor(x);
-}
+  function seededRandom(seed) { const x = Math.sin(seed) * 10000; return x - Math.floor(x); }
+  function pickDailyWord(pool) {
+    const start = new Date("2025-01-01T00:00:00+09:00");
+    const today = getKSTDate();
+    const days = Math.floor((today - start) / (1000*60*60*24));
+    const idx = Math.floor(seededRandom(days) * pool.length);
+    return pool[idx];
+  }
 
-function pickDailyWord(pool) {
-  const start = new Date("2025-01-01T00:00:00+09:00"); // 기준일 한국시간
-  const today = getKSTDate(); // 이미 있는 한국시간 함수 사용
-  const days = Math.floor((today - start) / (1000*60*60*24));
+  function parseCSVFirstColumn(csvText){
+    const clean = csvText.replace(/^\uFEFF/, "");
+    const lines = clean.split(/\r?\n/);
+    const onlyHangul = lines.map(line => (line.split(",")[0] || "").trim()).filter(w => /^[가-힣]+$/.test(w));
+    return onlyHangul;
+  }
 
-  // days를 시드로 삼아 매일 랜덤 인덱스 생성
-  const idx = Math.floor(seededRandom(days) * pool.length);
-  return pool[idx];
-}
-    
-// === 데이터 ===
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
-let 단어목록 = [];
-const fallbackWords = ["날왈","사이키라", "대정령", "렌더", "우사테이"];
+  function loadWords(){
+    return fetch(sheetUrl + "&t=" + Date.now(), { cache: "no-store" })
+      .then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(csv => {
+        const parsed = parseCSVFirstColumn(csv);
+        if (parsed.length === 0) throw new Error("빈 목록");
+        return parsed;
+      });
+  }
 
-// 🔴 전역 상태 (누락되어 있던 것들)
-let 정답, 정답낱자;
-const maxRows = 6;
-let currentRow = 0, currentCol = 0;
-let gameOver = false;
-let currentGuess = [];
-let lastTries = null;   // ✅ 추가: 공유용 시도 횟수 저장
+  loadWords()
+    .then(list => { 단어목록 = list; initGame(); })
+    .catch(err => { 단어목록 = fallbackWords; initGame(); });
 
-// CSV 1열만 사용 + BOM/CRLF 정리
-function parseCSVFirstColumn(csvText){
-  const clean = csvText.replace(/^\uFEFF/, "");
-  const lines = clean.split(/\r?\n/);
-  const firstCol = lines
-    .map(line => (line.split(",")[0] || "").trim())
-    .filter(Boolean);
-  // 순수 한글만
-  const onlyHangul = firstCol.filter(w => /^[가-힣]+$/.test(w));
-  return onlyHangul;
-}
+  // === 통계 및 날짜 [cite: 79-83] ===
+  function updateStats(win, tries){
+    const stats=JSON.parse(localStorage.getItem("sori-stats")||'{"played":0,"wins":0,"dist":[0,0,0,0,0,0]}');
+    stats.played++; if(win){ stats.wins++; stats.dist[tries-1]++; }
+    localStorage.setItem("sori-stats", JSON.stringify(stats));
+  }
+  function getStats(){ return JSON.parse(localStorage.getItem("sori-stats")||'{"played":0,"wins":0,"dist":[0,0,0,0,0,0]}'); }
+  function getKSTDate() { const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); return new Date(utc + (9 * 60 * 60000)); }
 
-// 시트 로딩 (중복 호출 금지)
-function loadWords(){
-  return fetch(sheetUrl + "&t=" + Date.now(), { cache: "no-store" })
-    .then(r => {
-      if(!r.ok) throw new Error("HTTP " + r.status);
-      return r.text();
-    })
-    .then(csv => {
-      // 디버그 로그 (개발자도구 콘솔에서 확인)
-      console.log("[CSV raw len]", csv.length);
-      console.log("[CSV preview]", csv.slice(0, 200));
-
-      const parsed = parseCSVFirstColumn(csv);
-      console.log("[Parsed count]", parsed.length, parsed.slice(0, 10));
-
-      if (parsed.length === 0) throw new Error("빈 목록");
-      return parsed;
-    });
-}
-
-// ✅ 호출부: 반드시 한 번만!
-loadWords()
-  .then(list => { 단어목록 = list; initGame(); })
-  .catch(err => {
-    console.error("단어 목록 로드 실패:", err);
-    단어목록 = fallbackWords;
-    showPopup("단어 목록을 불러오지 못했습니다. 시트를 '웹에 게시'했는지와 A열에 한글만 있는지 확인하세요.");
-    initGame();
-  });
-
-    // === 통계 ===
-    function updateStats(win, tries){
-      const stats=JSON.parse(localStorage.getItem("sori-stats")||'{"played":0,"wins":0,"dist":[0,0,0,0,0,0]}');
-      stats.played++;
-      if(win){ stats.wins++; stats.dist[tries-1]++; }
-      localStorage.setItem("sori-stats", JSON.stringify(stats));
-    }
-    function getStats(){
-      return JSON.parse(localStorage.getItem("sori-stats")||'{"played":0,"wins":0,"dist":[0,0,0,0,0,0]}');
-    }
-
-    // 한국 시간(KST) 기준 날짜 반환
-function getKSTDate() {
-  // 현재 UTC 시간 + 한국 시간(UTC+9) 보정
-  const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  return new Date(utc + (9 * 60 * 60000));
-}
-
-    // === 게임 초기화 ===
-
-function initGame(){
-  const start = new Date("2025-01-01T00:00:00+09:00"); // 기준일 한국시간
-  const today = getKSTDate(); // ✅ 한국 시간 기준 날짜 가져오기
-  const days  = Math.floor((today - start) / (1000*60*60*24));
-
-
-  // 1) 정답 선택(단어목록이 비어도 폴백 보장)
-  const pool = (Array.isArray(단어목록) && 단어목록.length>0) ? 단어목록 : fallbackWords;
-  정답 = pickDailyWord(pool) || fallbackWords[0];
-  
-  // 2) 낱자 분해 + 최종 안전장치
-  정답낱자 = [];
-  for (let ch of 정답) 정답낱자.push(...분리(ch));
-  if (!정답낱자.length) {              // 만약 분해가 비정상이라면
-    정답 = fallbackWords[0];
+  // === 초기화 및 입력 [cite: 84-125] ===
+  function initGame(){
+    const pool = (Array.isArray(단어목록) && 단어목록.length>0) ? 단어목록 : fallbackWords;
+    정답 = pickDailyWord(pool) || fallbackWords[0];
     정답낱자 = [];
     for (let ch of 정답) 정답낱자.push(...분리(ch));
+
+    const board = document.getElementById("board");
+    board.innerHTML = "";
+    for (let r=0; r<maxRows; r++){
+      const row = document.createElement("div");
+      row.className = "row";
+      for (let c=0; c<정답낱자.length; c++){
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        row.appendChild(cell);
+      }
+      board.appendChild(row);
+    }
+    buildKeyboard();
   }
 
-  // 3) 보드 렌더
-  const board = document.getElementById("board");
-  board.innerHTML = "";
-  for (let r=0; r<maxRows; r++){
-    const row = document.createElement("div");
-    row.className = "row";
-    for (let c=0; c<정답낱자.length; c++){
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      row.appendChild(cell);
-    }
-    board.appendChild(row);
-  }
-
-  buildKeyboard();
-  console.log("[INIT] answer:", 정답, "/ letters:", 정답낱자.length); // 디버깅 로그
-    }
-
-
-    // === 키보드 ===
-    function buildKeyboard(){
-      const rows=[["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ","ㅐ","ㅔ"],
-                  ["ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ"],
-                  ["입력","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","삭제"]];
-      const keyDiv=document.getElementById("keyboard"); keyDiv.innerHTML="";
-      rows.forEach(row=>{
-        const rowDiv=document.createElement("div"); rowDiv.className="key-row";
-        row.forEach(k=>{
-          const keyBtn=document.createElement("div");
-          keyBtn.className="key"; keyBtn.textContent=k;
-          if(k==="입력"||k==="삭제") keyBtn.classList.add("wide");
-          keyBtn.onclick=()=>handleKey(k);
-          rowDiv.appendChild(keyBtn);
-        });
-        keyDiv.appendChild(rowDiv);
+  function buildKeyboard(){
+    const rows=[["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ","ㅐ","ㅔ"], ["ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ"], ["입력","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","삭제"]];
+    const keyDiv=document.getElementById("keyboard"); keyDiv.innerHTML="";
+    rows.forEach(row=>{
+      const rowDiv=document.createElement("div"); rowDiv.className="key-row";
+      row.forEach(k=>{
+        const keyBtn=document.createElement("div");
+        keyBtn.className="key" + (k==="입력"||k==="삭제" ? " wide" : "");
+        keyBtn.textContent=k;
+        keyBtn.onclick=()=>handleKey(k);
+        rowDiv.appendChild(keyBtn);
       });
+      keyDiv.appendChild(rowDiv);
+    });
+  }
+
+  /* [추가 기능 1: PC 물리 키보드 지원] */
+  const physicalKeyMap = {'q':'ㅂ','w':'ㅈ','e':'ㄷ','r':'ㄱ','t':'ㅅ','y':'ㅛ','u':'ㅕ','i':'ㅑ','o':'ㅐ','p':'ㅔ','a':'ㅁ','s':'ㄴ','d':'ㅇ','f':'ㄹ','g':'ㅎ','h':'ㅗ','j':'ㅓ','k':'ㅏ','l':'ㅣ','z':'ㅋ','x':'ㅌ','c':'ㅊ','v':'ㅍ','b':'ㅠ','n':'ㅜ','m':'ㅡ'};
+  window.addEventListener("keydown", (e) => {
+    if (gameOver) return;
+    if (e.key === "Enter") handleKey("입력");
+    else if (e.key === "Backspace") handleKey("삭제");
+    else if (physicalKeyMap[e.key.toLowerCase()]) handleKey(physicalKeyMap[e.key.toLowerCase()]);
+    else if (/^[ㄱ-ㅎㅏ-ㅣ]$/.test(e.key)) handleKey(e.key);
+  });
+
+  function handleKey(k){
+    if (gameOver) return;
+    if (k === "입력") { submitGuess(); return; }
+    if (k === "삭제") {
+      if (currentCol > 0) {
+        currentCol--; currentGuess.pop();
+        document.getElementById("board").children[currentRow].children[currentCol].textContent = "";
+        clearInvalidRow();
+      }
+      return;
     }
-
-// === 키 입력 ===
-    
-function handleKey(k){
-  if (gameOver) return;
-
-  if (k === "입력") {
-    submitGuess();                 // ✅ 항상 시도
-    return;
-  }
-
-  if (k === "삭제") {
-    if (currentCol > 0) {
-      currentCol--;
-      currentGuess.pop();
-      const cell = document.getElementById("board").children[currentRow].children[currentCol];
-      cell.textContent = "";
-      clearInvalidRow();           // 편집하면 경고 해제
-    }
-    return;
-  }
-
-  // 일반 자모 입력
-  if (currentCol < 정답낱자.length) {
-    currentGuess.push(k);
-    document.getElementById("board").children[currentRow].children[currentCol].textContent = k;
-    currentCol++;
-    clearInvalidRow();             // 편집하면 경고 해제
-  }
-}
-
-// === 낱자 배열을 합성해서 완성형 한글 단어로 만드는 함수 ===
-function combineGuessToWord(guess){
-  let combined = "";
-  for (let i = 0; i < guess.length; ){
-    let choChar = guess[i];
-
-    // 된소리 처리
-    if (i+1 < guess.length) {
-      const pair = choChar + guess[i+1];
-      if (pair === "ㄱㄱ") { choChar = "ㄲ"; i++; }
-      else if (pair === "ㄷㄷ") { choChar = "ㄸ"; i++; }
-      else if (pair === "ㅂㅂ") { choChar = "ㅃ"; i++; }
-      else if (pair === "ㅈㅈ") { choChar = "ㅉ"; i++; }
-      else if (pair === "ㅅㅅ") { choChar = "ㅆ"; i++; }
-    }
-
-    let cho = 초성.indexOf(choChar);
-    if (cho < 0) { i++; continue; }
-
-    let jung = 중성.indexOf(guess[i+1]||"");
-    if (jung < 0) { i++; continue; }
-
-    let jong = 0;
-    if (i+2 < guess.length) {
-      let idx = 종성.indexOf(guess[i+2]);
-      if (idx > 0) { jong = idx; i++; }
-    }
-
-    const syllableCode = 0xAC00 + cho*588 + jung*28 + jong;
-    combined += String.fromCharCode(syllableCode);
-    i += (jong ? 3 : 2);
-  }
-  return combined;
-}
-    
-// === 제출 ===
-function submitGuess() {
-  const guess = [...currentGuess];
-
-  if (guess.length !== 정답낱자.length) return;
-
-  // --- 유효성 검사 ---
-  if (!isValidJamoSequence(guess)) {
-    markInvalidRow(); // 빨간색 효과
-    return;
-  }
-
-  const row = document.getElementById("board").children[currentRow].children;
-
-  // --- 판정 준비 ---
-  const freq = {};
-  for (let i=0; i<정답낱자.length; i++) {
-    freq[정답낱자[i]] = (freq[정답낱자[i]] || 0) + 1;
-  }
-
-  const result = new Array(정답낱자.length).fill("absent");
-  for (let i=0; i<정답낱자.length; i++) {
-    if (guess[i] === 정답낱자[i]) {
-      result[i] = "correct";
-      freq[guess[i]]--;
-    }
-  }
-  for (let i=0; i<정답낱자.length; i++) {
-    if (result[i] === "correct") continue;
-    if (freq[guess[i]] > 0) {
-      result[i] = "present";
-      freq[guess[i]]--;
+    if (currentCol < 정답낱자.length) {
+      currentGuess.push(k);
+      document.getElementById("board").children[currentRow].children[currentCol].textContent = k;
+      currentCol++; clearInvalidRow();
     }
   }
 
-  // --- 칸 색칠 + 키보드 갱신 ---
-  for (let i=0; i<정답낱자.length; i++) {
-    row[i].textContent = guess[i];
-    row[i].classList.add(result[i]);
-    updateKeyboard(guess[i], result[i]);
-  }
+  function submitGuess() {
+    const guess = [...currentGuess];
+    if (guess.length !== 정답낱자.length) return;
+    if (!isValidJamoSequence(guess)) { markInvalidRow(); return; }
 
-  // --- 정답 맞춘 경우 ---
-  if (guess.join("") === 정답낱자.join("")) {
-    gameOver = true;
-    const tries = currentRow+1;
-    lastTries = currentRow+1;
-    updateStats(true, tries);
-    setTimeout(() => showPopup("정답! 🎉 ("+tries+"/6)"), 600);
-    document.getElementById("shareBtn").style.display = "inline-block";
-    return;
-  }
+    const row = document.getElementById("board").children[currentRow].children;
+    const freq = {};
+    정답낱자.forEach(l => freq[l] = (freq[l] || 0) + 1);
 
-  // --- 다음 줄 이동 ---
-  currentRow++;
-  currentCol = 0;
-  currentGuess = [];
-
-  // --- 실패 처리 ---
-  if (currentRow >= maxRows && !gameOver) {
-    gameOver = true;
-    lastTries = "X";
-    updateStats(false,0);
-    setTimeout(() => showPopup("실패! 정답은 "+정답), 600);
-    document.getElementById("shareBtn").style.display = "inline-block";
-  }
-}
-    // === 키보드 색 업데이트 ===
-    function updateKeyboard(letter,state){
-      document.querySelectorAll(".key").forEach(k=>{
-        if(k.textContent===letter){
-          if(state==="correct") k.className="key correct";
-          else if(state==="present" && !k.classList.contains("correct")) k.className="key present";
-          else if(state==="absent" && !k.classList.contains("correct") && !k.classList.contains("present")) k.className="key absent";
-        }
-      });
+    const result = new Array(정답낱자.length).fill("absent");
+    for (let i=0; i<정답낱자.length; i++) {
+      if (guess[i] === 정답낱자[i]) { result[i] = "correct"; freq[guess[i]]--; }
+    }
+    for (let i=0; i<정답낱자.length; i++) {
+      if (result[i] === "correct") continue;
+      if (freq[guess[i]] > 0) { result[i] = "present"; freq[guess[i]]--; }
     }
 
-    // === 팝업 ===
-    function showPopup(msg){ document.getElementById("popup-message").textContent=msg; document.getElementById("popup").classList.remove("hidden"); }
-    document.getElementById("popup-close").onclick=()=>{ document.getElementById("popup").classList.add("hidden"); };
-
-    // === 공유 ===
-function shareResult() {
-  const text = buildShareText();
-
-  // ✅ 항상 클립보드 복사만 시도
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text)
-      .then(() => alert("결과가 클립보드에 복사되었습니다!"))
-      .catch(err => {
-        console.error("Clipboard API 실패:", err);
-        tryClipboardCopy(text); // 폴백
-      });
-  } else {
-    // ✅ execCommand 폴백
-    tryClipboardCopy(text);
-  }
-}
-// ✅ 최종 폴백: 숨은 textarea를 만들어 execCommand('copy') 사용
-
-    function tryClipboardCopy(text){
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  ta.setAttribute("readonly", "");
-  ta.style.position = "fixed";
-  ta.style.top = "-1000px";
-  document.body.appendChild(ta);
-
-  // ▼ 반드시 선택해줘야 복사가 된다
-  ta.select();
-  ta.setSelectionRange(0, 999999);
-
-  let ok = false;
-  try {
-    ok = document.execCommand("copy");
-  } catch(e) { ok = false; }
-
-  document.body.removeChild(ta);
-  alert(ok ? "결과가 클립보드에 복사되었습니다!" : "복사에 실패했습니다. 브라우저/HTTPS 환경을 확인하세요.");
-}
-
-// ✅ 공유 텍스트 생성 (N/6 또는 X/6 + 블록 패턴)
-function buildShareText(){
-  const tries = (lastTries===null) ? "X" : lastTries;
-
-  // ✅ 오늘 날짜 (YYYY-MM-DD)
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth()+1).padStart(2,"0");
-  const dd = String(today.getDate()).padStart(2,"0");
-  const dateStr = `${yyyy}-${mm}-${dd}`;
-
-  // ✅ 첫 줄에 날짜 포함
-  let output = `#소리워들 ${tries}/6 (${dateStr})\n`;
-
-  // 성공이면 lastTries 만큼 줄 출력, 실패면 6줄
-  const rowsToPrint = (typeof lastTries === "number") ? lastTries : maxRows;
-
-  for (let r=0; r<rowsToPrint; r++){
-    // ✅ 마지막 줄이고 성공한 경우 → 전부 초록으로 강제
-    if (typeof lastTries === "number" && r === rowsToPrint-1){
-      output += "🟩".repeat(정답낱자.length) + "\n";
-      continue;
+    for (let i=0; i<정답낱자.length; i++) {
+      row[i].classList.add(result[i]);
+      updateKeyboard(guess[i], result[i]);
     }
 
-    const row = document.getElementById("board").children[r].children;
-    for (let c=0; c<정답낱자.length; c++){
-      if (row[c].classList.contains("correct")) output += "🟩";
-      else if (row[c].classList.contains("present")) output += "🟨";
-      else output += "⬜";
+    if (guess.join("") === 정답낱자.join("")) {
+      gameOver = true; lastTries = currentRow+1;
+      updateStats(true, lastTries);
+      setTimeout(() => showPopup("정답! 🎉 ("+lastTries+"/6)"), 600);
+      document.getElementById("shareBtn").style.display = "inline-block";
+      return;
     }
-    output += "\n";
+
+    currentRow++; currentCol = 0; currentGuess = [];
+    if (currentRow >= maxRows) {
+      gameOver = true; lastTries = "X";
+      updateStats(false,0);
+      setTimeout(() => showPopup("실패! 정답은 "+정답), 600);
+      document.getElementById("shareBtn").style.display = "inline-block";
+    }
   }
 
-  // ✅ 마지막에 사이트 주소 추가
-  output += "\nhttps://sori-wordle.com";
+  function updateKeyboard(letter,state){
+    document.querySelectorAll(".key").forEach(k=>{
+      if(k.textContent===letter){
+        if(state==="correct") k.className="key correct";
+        else if(state==="present" && !k.classList.contains("correct")) k.className="key present";
+        else if(state==="absent" && !k.classList.contains("correct") && !k.classList.contains("present")) k.className="key absent";
+      }
+    });
+  }
 
-  return output;
-}
-    // === 통계 보기 ===
-    document.getElementById("statsBtn").onclick=()=>{
-      const s=getStats();
-      let msg=`플레이: ${s.played}\n승리: ${s.wins}\n승률: ${s.played?Math.round(s.wins/s.played*100):0}%\n\n시도 분포:\n`;
-      s.dist.forEach((v,i)=>{ msg+=`${i+1}회: ${v}\n`; });
-      showPopup(msg);
-    };
-  </script>
+  function showPopup(msg){ document.getElementById("popup-message").textContent=msg; document.getElementById("popup").classList.remove("hidden"); }
+  document.getElementById("popup-close").onclick=()=>{ document.getElementById("popup").classList.add("hidden"); };
+
+  // === 공유 및 통계 [cite: 126-143] ===
+  function shareResult() {
+    const text = buildShareText();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => alert("결과가 복사되었습니다!")).catch(() => tryClipboardCopy(text));
+    } else { tryClipboardCopy(text); }
+  }
+
+  function tryClipboardCopy(text){
+    const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.top = "-1000px";
+    document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
+    alert("결과가 복사되었습니다!");
+  }
+
+  /* [추가 기능 2: 워들 표준 공유 텍스트 개선] */
+  function buildShareText(){
+    const tries = (lastTries===null) ? "X" : lastTries;
+    const dateStr = getKSTDate().toISOString().slice(0,10);
+    let output = `소리워들 ${dateStr} ${tries}/6\n\n`;
+    const rowsToPrint = (typeof lastTries === "number") ? lastTries : maxRows;
+    for (let r=0; r<rowsToPrint; r++){
+      const row = document.getElementById("board").children[r].children;
+      for (let c=0; c<정답낱자.length; c++){
+        if (row[c].classList.contains("correct")) output += "🟩";
+        else if (row[c].classList.contains("present")) output += "🟨";
+        else if (row[c].classList.contains("absent")) output += "⬜";
+      }
+      output += "\n";
+    }
+    output += "\nhttps://sori-wordle.com";
+    return output;
+  }
+
+  document.getElementById("statsBtn").onclick=()=>{
+    const s=getStats();
+    let msg=`플레이: ${s.played}\n승리: ${s.wins}\n승률: ${s.played?Math.round(s.wins/s.played*100):0}%\n\n시도 분포:\n1회: ${s.dist[0]} 2회: ${s.dist[1]} 3회: ${s.dist[2]}\n4회: ${s.dist[3]} 5회: ${s.dist[4]} 6회: ${s.dist[5]}`;
+    showPopup(msg);
+  };
+</script>
 </body>
 </html>
