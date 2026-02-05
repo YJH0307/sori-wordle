@@ -44,45 +44,17 @@
     }
 
     .cell {
-  width: 45px;
-  height: 45px;
-  border: 2px solid #ccc;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 22px;
-  font-weight: bold;
-  font-family: 'Noto Sans KR', sans-serif;
-  border-radius: 6px;
-  /* 회전 애니메이션을 위한 설정 */
-  perspective: 1000px;
-  transition: transform 0.6s;
-}
-
-/* === 애니메이션 효과 정의 === */
-@keyframes flip {
-  0% { transform: rotateX(0); }
-  50% { transform: rotateX(90deg); } /* 90도에서 색상 변경 */
-  100% { transform: rotateX(0); }
-}
-.flip { animation: flip 0.6s ease-in-out; }
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-5px); }
-  40%, 80% { transform: translateX(5px); }
-}
-.shake { animation: shake 0.5s; }
-
-@keyframes bounce {
-  0%, 20% { transform: translateY(0); }
-  40% { transform: translateY(-20px); }
-  50% { transform: translateY(5px); }
-  60% { transform: translateY(-10px); }
-  80% { transform: translateY(2px); }
-  100% { transform: translateY(0); }
-}
-.bounce { animation: bounce 0.6s; }
+      width: 45px;
+      height: 45px;
+      border: 2px solid #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 22px;
+      font-weight: bold;
+      font-family: 'Noto Sans KR', sans-serif;
+      border-radius: 6px;
+    }
     .cell.invalid {
       background: rgba(255, 0, 0, 0.2); /* 연한 빨간색 배경 [cite: 14] */
       border-color: red;
@@ -432,72 +404,83 @@
   // === 제출 함수 (애니메이션 포함 버전) ===
 function submitGuess() {
   const guess = [...currentGuess];
+
   if (guess.length !== 정답낱자.length) return;
 
-  // 유효성 검사 실패 시 흔들기 효과
+  // --- 유효성 검사 --- 
   if (!isValidJamoSequence(guess)) {
-    const rowEl = document.getElementById("board").children[currentRow];
-    rowEl.classList.add("shake");
-    setTimeout(() => rowEl.classList.remove("shake"), 500);
-    markInvalidRow();
+    const currentRowEl = document.getElementById("board").children[currentRow];
+    currentRowEl.classList.add("shake"); // 흔들기 애니메이션 추가
+    markInvalidRow(); // [cite: 113]
+    
+    // 0.5초 후 애니메이션 클래스 제거 (재사용을 위함)
+    setTimeout(() => currentRowEl.classList.remove("shake"), 500);
     return;
   }
 
   const row = document.getElementById("board").children[currentRow].children;
+
+  // --- 판정 준비 --- [cite: 114]
   const freq = {};
-  정답낱자.forEach(l => freq[l] = (freq[l] || 0) + 1);
+  for (let i=0; i<정답낱자.length; i++) {
+    freq[정답낱자[i]] = (freq[정답낱자[i]] || 0) + 1;
+  }
 
   const result = new Array(정답낱자.length).fill("absent");
-  guess.forEach((l, i) => { if (l === 정답낱자[i]) { result[i] = "correct"; freq[l]--; } });
-  guess.forEach((l, i) => { if (result[i] === "correct") continue; if (freq[l] > 0) { result[i] = "present"; freq[l]--; } });
+  for (let i=0; i<정답낱자.length; i++) {
+    if (guess[i] === 정답낱자[i]) {
+      result[i] = "correct";
+      freq[guess[i]]--;
+    }
+  }
+  for (let i=0; i<정답낱자.length; i++) {
+    if (result[i] === "correct") continue;
+    if (freq[guess[i]] > 0) {
+      result[i] = "present";
+      freq[guess[i]]--;
+    }
+  }
 
-  // === 애니메이션 시작: 한 칸씩 뒤집기 ===
-  let tempGameOver = gameOver; 
-  gameOver = true; // 애니메이션 도중 입력 방지
+  // --- 칸 색칠 + 키보드 갱신 + 애니메이션 적용 --- [cite: 118-119]
+  const isCorrect = guess.join("") === 정답낱자.join("");
 
-  guess.forEach((l, i) => {
-    setTimeout(() => {
-      const cell = row[i];
-      cell.classList.add("flip"); // 뒤집기 시작
+  for (let i=0; i<정답낱자.length; i++) {
+    row[i].textContent = guess[i];
+    row[i].classList.add(result[i]);
+    updateKeyboard(guess[i], result[i]);
 
-      // 0.3초(90도 회전 시점)에 색상 적용
+    // 정답일 경우 순차적으로 튀어오르는 효과 추가
+    if (isCorrect) {
       setTimeout(() => {
-        cell.classList.add(result[i]);
-        updateKeyboard(l, result[i]);
-      }, 300);
+        row[i].classList.add("bounce");
+      }, i * 100); // 0.1초 간격으로 통통 튐
+    }
+  }
 
-      // 모든 칸이 다 뒤집혔을 때 결과 처리
-      if (i === 정답낱자.length - 1) {
-        setTimeout(() => {
-          const isWin = guess.join("") === 정답낱자.join("");
-          if (isWin) {
-            gameOver = true;
-            lastTries = currentRow + 1;
-            updateStats(true, lastTries);
-            // 승리 시 통통 튀는 효과
-            Array.from(row).forEach((c, idx) => {
-              setTimeout(() => c.classList.add("bounce"), idx * 100);
-            });
-            setTimeout(() => showPopup(`정답! 🎉 (${lastTries}/6)`), 800);
-            document.getElementById("shareBtn").style.display = "inline-block";
-          } else {
-            currentRow++;
-            currentCol = 0;
-            currentGuess = [];
-            if (currentRow >= 6) {
-              gameOver = true;
-              lastTries = "X";
-              updateStats(false, 0);
-              showPopup("실패! 정답은 " + 정답);
-              document.getElementById("shareBtn").style.display = "inline-block";
-            } else {
-              gameOver = false; // 다음 줄 입력을 위해 잠금 해제
-            }
-          }
-        }, 500);
-      }
-    }, i * 200); // 0.2초 간격으로 한 칸씩 실행
-  });
+  // --- 정답 맞춘 경우 --- 
+  if (isCorrect) {
+    gameOver = true;
+    const tries = currentRow+1;
+    lastTries = currentRow+1;
+    updateStats(true, tries);
+    // 애니메이션이 끝난 후 팝업이 뜨도록 시간을 1초로 연장
+    setTimeout(() => showPopup("정답! 🎉 ("+tries+"/6)"), 1000);
+    document.getElementById("shareBtn").style.display = "inline-block";
+    return;
+  }
+
+  // --- 다음 줄 이동 및 실패 처리 --- [cite: 121-124]
+  currentRow++;
+  currentCol = 0;
+  currentGuess = [];
+
+  if (currentRow >= maxRows && !gameOver) {
+    gameOver = true;
+    lastTries = "X";
+    updateStats(false,0);
+    setTimeout(() => showPopup("실패! 정답은 "+정답), 600);
+    document.getElementById("shareBtn").style.display = "inline-block";
+  }
 }
   function updateKeyboard(letter,state){
     document.querySelectorAll(".key").forEach(k=>{
