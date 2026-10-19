@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>소리워들 단어 사전</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="소리워들에 출제된 소리MAD·음MAD 관련 단어들을 설명과 함께 모은 단어 사전입니다.">
+  <link rel="canonical" href="https://sori-wordle.com/words.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#fff; --fg:#1a1a1b; --muted:#6b6e70; --border:#e1e3e6; --surface:#f4f4f5; --correct:#6aaa64; --present:#c9b458; }
+    body.dark { --bg:#121213; --fg:#ececec; --muted:#9a9a9c; --border:#2f2f31; --surface:#1e1e20; --correct:#538d4e; --present:#b59f3b; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:'Noto Sans KR',sans-serif; line-height:1.75; font-size:16px; }
+    .wrap { max-width:720px; margin:0 auto; padding:20px 16px 40px; }
+    .top { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; border-bottom:1px solid var(--border); padding-bottom:12px; }
+    .logo { font-weight:900; font-size:24px; color:var(--fg); text-decoration:none; }
+    .top nav { display:flex; gap:14px; font-size:14px; font-weight:700; flex-wrap:wrap; }
+    .top nav a { color:var(--muted); text-decoration:none; }
+    .top nav a[aria-current] { color:var(--fg); }
+    h1 { font-size:30px; font-weight:900; margin:28px 0 6px; }
+    .lead { color:var(--muted); margin-top:0; }
+    a { color:var(--correct); }
+    .warn { background:var(--surface); border-left:4px solid var(--present); border-radius:8px; padding:10px 14px; font-size:14px; margin:16px 0; }
+    .tools { display:flex; gap:8px; flex-wrap:wrap; margin:18px 0 8px; position:sticky; top:0; background:var(--bg); padding:8px 0; z-index:2; }
+    .tools input[type=search] { flex:1; min-width:180px; padding:10px 12px; border:2px solid var(--border); border-radius:10px; font:inherit; background:var(--bg); color:var(--fg); }
+    .tools label { display:flex; align-items:center; gap:6px; font-size:14px; color:var(--muted); }
+    .jump { display:flex; flex-wrap:wrap; gap:4px; margin:6px 0 10px; }
+    .jump a { min-width:32px; text-align:center; padding:4px 6px; border-radius:6px; background:var(--surface); color:var(--fg); text-decoration:none; font-weight:700; font-size:14px; }
+    .group-h { font-size:20px; font-weight:900; margin:26px 0 8px; padding-bottom:4px; border-bottom:2px solid var(--border); scroll-margin-top:70px; }
+    .entry { padding:12px 0; border-bottom:1px solid var(--border); }
+    .entry h2 { font-size:19px; font-weight:900; margin:0; letter-spacing:1px; }
+    .entry .meta { font-size:13px; color:var(--muted); }
+    .entry p { margin:6px 0 0; white-space:pre-line; }
+    .entry .none { color:var(--muted); font-size:14px; }
+    .blur .entry h2 { filter: blur(7px); user-select:none; }
+    .blur .entry h2:hover, .blur .entry:focus-within h2 { filter:none; }
+    .count { font-size:14px; color:var(--muted); }
+    .msg { color:var(--muted); text-align:center; margin:40px 0; }
+    footer { margin-top:48px; padding-top:16px; border-top:1px solid var(--border); font-size:13px; color:var(--muted); display:flex; gap:14px; flex-wrap:wrap; }
+    footer a { color:var(--muted); }
+  </style>
+</head>
+<body>
+<script>
+  (function(){ var t=null; try{ t=localStorage.getItem("sori-wordle-theme"); }catch(e){}
+    if(t!=="light"&&t!=="dark") t=(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";
+    if(t==="dark") document.body.classList.add("dark"); })();
+</script>
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="./">소리워들</a>
+    <nav>
+      <a href="./">게임하기</a>
+      <a href="about.html">소개</a>
+      <a href="words.html" aria-current="page">단어 사전</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>단어 사전</h1>
+    <p class="lead">소리워들에 출제된 소리MAD·음MAD 관련 단어 모음</p>
+    <p>지금까지 ‘오늘의 문제’로 출제된 정답 단어들을 가나다순으로 정리했습니다. 각 단어가 어떤 소재인지, 언제 출제되었는지 확인할 수 있습니다. 오늘의 정답은 이 페이지에 나오지 않습니다.</p>
+    <div class="warn">⚠️ 지난 문제의 정답이 공개되어 있어요. 지난 문제를 먼저 풀고 싶다면 아래 ‘단어 가리기’를 켜 두세요. 단어에 마우스를 올리거나 눌러야 보입니다.</div>
+
+    <div class="tools">
+      <input id="q" type="search" placeholder="단어나 설명으로 검색" aria-label="단어 검색">
+      <label><input type="checkbox" id="blur"> 단어 가리기</label>
+    </div>
+    <div id="jump" class="jump" aria-label="초성으로 이동"></div>
+    <div id="count" class="count"></div>
+    <div id="list"><p class="msg">단어 목록을 불러오는 중…</p></div>
+  </main>
+
+  <footer>
+    <span>© 2025 소리워들</span>
+    <a href="about.html">소개</a>
+    <a href="words.html">단어 사전</a>
+    <a href="privacy.html">개인정보처리방침</a>
+  </footer>
+</div>
+
+<script>
+/* ★ index.html과 같은 값을 써야 합니다 ★ */
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
+const START = Date.UTC(2024, 11, 31, 15, 0, 0);
+const CUTOVER_DAY = 656;
+const LEGACY_LEN = 321;
+
+const DAY = 86400000;
+const todayIndex = () => Math.floor((Date.now() - START) / DAY);
+const dateOf = (d) => new Date(START + d * DAY + 9 * 3600000).toISOString().slice(0, 10).replace(/-/g, ".");
+function wordIndexForDay(d, len) {
+  const i = d < CUTOVER_DAY ? d % LEGACY_LEN : (CUTOVER_DAY % LEGACY_LEN) + (d - CUTOVER_DAY);
+  return i % len;
+}
+function parseCSV(text) {
+  const rows = []; let row = [], f = "", q = false;
+  text = text.replace(/^﻿/, "");
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ",") { row.push(f); f = ""; }
+    else if (ch === "\n" || ch === "\r") { if (ch === "\r" && text[i + 1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; }
+    else f += ch;
+  }
+  if (f !== "" || row.length) { row.push(f); rows.push(row); }
+  return rows;
+}
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const safeUrl = (u) => /^https?:\/\//i.test((u || "").trim()) ? u.trim() : "";
+
+const CHO = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+const BASE = { "ㄲ":"ㄱ","ㄸ":"ㄷ","ㅃ":"ㅂ","ㅆ":"ㅅ","ㅉ":"ㅈ" };
+const choOf = (w) => { const c = CHO[Math.floor((w.charCodeAt(0) - 0xAC00) / 588)]; return BASE[c] || c; };
+
+let entries = [];
+
+async function load() {
+  let rows;
+  try {
+    const r = await fetch(SHEET_URL + "&t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error();
+    rows = parseCSV(await r.text())
+      .map((r) => ({ w: (r[0] || "").trim(), desc: (r[1] || "").trim(), link: safeUrl(r[2]) }))
+      .filter((r) => /^[가-힣]+$/.test(r.w));
+    if (!rows.length) throw new Error();
+  } catch (e) {
+    document.getElementById("list").innerHTML = `<p class="msg">단어 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>`;
+    return;
+  }
+
+  const today = todayIndex();
+  const todayWord = rows[wordIndexForDay(today, rows.length)].w;
+  const map = new Map();
+  for (let d = 0; d < today; d++) {
+    const row = rows[wordIndexForDay(d, rows.length)];
+    if (row.w === todayWord) continue; // 오늘 정답은 숨김
+    if (!map.has(row.w)) map.set(row.w, { ...row, days: [] });
+    map.get(row.w).days.push(d);
+  }
+  entries = [...map.values()].sort((a, b) => a.w.localeCompare(b.w, "ko"));
+  render();
+}
+
+function render() {
+  const q = document.getElementById("q").value.trim();
+  const list = q ? entries.filter((e) => e.w.includes(q) || e.desc.includes(q)) : entries;
+  const groups = {};
+  list.forEach((e) => { const c = choOf(e.w); (groups[c] = groups[c] || []).push(e); });
+  const keys = Object.keys(groups).sort((a, b) => CHO.indexOf(a) - CHO.indexOf(b));
+
+  document.getElementById("jump").innerHTML = keys.map((k) => `<a href="#g-${k}">${k}</a>`).join("");
+  const described = list.filter((e) => e.desc).length;
+  document.getElementById("count").textContent = `단어 ${list.length}개` + (described ? ` · 설명 ${described}개` : "");
+
+  if (!list.length) { document.getElementById("list").innerHTML = `<p class="msg">검색 결과가 없어요.</p>`; return; }
+  document.getElementById("list").innerHTML = keys.map((k) => `
+    <section>
+      <div class="group-h" id="g-${k}">${k}</div>
+      ${groups[k].map((e) => {
+        const recent = e.days.slice(-3).reverse().map((d) => `#${d + 1}(${dateOf(d)})`).join(", ");
+        return `<article class="entry" tabindex="0">
+          <h2>${esc(e.w)}</h2>
+          <div class="meta">출제 ${e.days.length}회 · 최근 ${recent}</div>
+          ${e.desc ? `<p>${esc(e.desc)}</p>` : `<p class="none">설명 준비 중이에요.</p>`}
+          ${e.link ? `<p><a href="${esc(e.link)}" target="_blank" rel="noopener">관련 영상·자료 보기 ↗</a></p>` : ""}
+        </article>`;
+      }).join("")}
+    </section>`).join("");
+}
+
+document.getElementById("q").addEventListener("input", render);
+document.getElementById("blur").addEventListener("change", (e) => document.getElementById("list").classList.toggle("blur", e.target.checked));
+load();
+</script>
+</body>
+</html>
