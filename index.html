@@ -959,7 +959,7 @@ function emojiFor(st) {
 }
 function buildShareText() {
   const tries = game.s === "win" ? game.g.length : "X";
-  let head = `소리워들 #${curDay + 1} ${tries}/6`;
+  let head = `#소리워들 #${curDay + 1} ${tries}/6`;
   if (game.m === "archive") head += " (지난 문제)";
   const rows = game.g.map((gs) => evaluate(gs.split("")).map(emojiFor).join("")).join("\n");
   return `${head}\n\n${rows}\n\n${SITE_URL}`;
