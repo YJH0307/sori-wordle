@@ -49,9 +49,30 @@
     .nav { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
     .nav-btn {
       display: flex; flex-direction: column; align-items: center; gap: 2px;
-      min-width: 58px; padding: 6px 8px; border: none; border-radius: 10px;
+      min-width: 54px; padding: 6px 4px; border: none; border-radius: 10px;
       background: var(--surface); cursor: pointer; font-size: 12px;
     }
+    @media (max-width: 380px) { .nav { gap: 4px; } .nav-btn { min-width: 48px; font-size: 11px; } }
+
+    /* 입력 미리보기 */
+    .preview { min-height: 30px; margin-top: 10px; font-size: 22px; font-weight: 900; letter-spacing: 3px; text-align: center; }
+    .preview.empty { color: var(--muted); font-size: 13px; font-weight: 400; letter-spacing: 0; line-height: 30px; }
+    .preview.bad { color: var(--invalid); }
+
+    /* 하단 */
+    .foot { margin-top: 22px; display: flex; gap: 14px; justify-content: center; font-size: 13px; }
+    .foot a, .link-btn { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; background: none; border: none; cursor: pointer; font-size: 13px; padding: 4px; }
+
+    /* 업적 */
+    .ach-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; text-align: left; }
+    .ach { display: flex; gap: 8px; align-items: center; background: var(--surface); border-radius: 10px; padding: 8px 10px; }
+    .ach .ic { font-size: 26px; line-height: 1; }
+    .ach .nm { font-size: 14px; font-weight: 900; }
+    .ach .ds { font-size: 11px; color: var(--muted); font-weight: 400; line-height: 1.4; }
+    .ach.locked .ic { filter: grayscale(1); opacity: .35; }
+    .ach.locked .nm { color: var(--muted); }
+    .ach-progress { height: 8px; background: var(--surface); border-radius: 99px; overflow: hidden; margin: 0 0 14px; }
+    .ach-progress div { height: 100%; background: var(--correct); }
     .nav-btn .ic { font-size: 18px; line-height: 1.2; }
     .nav-btn:hover { filter: brightness(0.95); }
 
@@ -217,6 +238,7 @@
     <button class="nav-btn" id="helpBtn"><span class="ic" aria-hidden="true">❓</span><span>규칙</span></button>
     <button class="nav-btn" id="archiveBtn"><span class="ic" aria-hidden="true">🗂️</span><span>지난 문제</span></button>
     <button class="nav-btn" id="statsBtn"><span class="ic" aria-hidden="true">📊</span><span>통계</span></button>
+    <button class="nav-btn" id="achBtn"><span class="ic" aria-hidden="true">🏅</span><span>업적</span></button>
     <button class="nav-btn" id="recapBtn"><span class="ic" aria-hidden="true">🎂</span><span>1주년</span></button>
     <button class="nav-btn" id="settingsBtn"><span class="ic" aria-hidden="true">⚙️</span><span>설정</span></button>
   </nav>
@@ -224,6 +246,7 @@
   <div id="modeBar" class="mode-bar"></div>
 
   <main>
+    <div id="preview" class="preview" aria-live="polite"></div>
     <div id="board" class="board" role="grid" aria-label="게임 보드"></div>
     <div id="boardMsg" class="board-msg">단어 목록을 불러오는 중…</div>
     <div class="under">
@@ -232,6 +255,19 @@
     </div>
     <div id="keyboard" class="keyboard" aria-label="자모 키보드"></div>
   </main>
+
+  <footer class="foot">
+    <a class="suggest-link hidden" href="#" target="_blank" rel="noopener">💡 단어 제보하기</a>
+  </footer>
+
+  <!-- 업적 -->
+  <div id="achModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="achTitle">
+    <div class="modal-box">
+      <button class="modal-close" aria-label="닫기">×</button>
+      <h2 id="achTitle">🏅 업적</h2>
+      <div id="achBody"></div>
+    </div>
+  </div>
 
   <div id="toasts" class="toasts" aria-live="polite"></div>
 
@@ -256,7 +292,9 @@
           · 연속 기록과 통계 그래프<br>
           · 🗂️ 지난 문제 다시 풀기<br>
           · 🎂 나의 1주년 회고 카드<br>
+          · 🏅 업적 · 🔊 효과음 · 입력 중 글자 미리보기<br>
           · ⚙️ 색약(고대비) 모드</div>
+        <p class="suggest-line hidden" style="text-align:center;margin-bottom:0">넣고 싶은 단어가 있나요? <a class="suggest-link" href="#" target="_blank" rel="noopener">💡 단어 제보하기</a></p>
         <p class="muted" style="text-align:center;margin-bottom:0">“소리워들”은 매일 자정(한국 시간)에 갱신됩니다.</p>
       </div>
     </div>
@@ -307,6 +345,10 @@
         <div><div>색약(고대비) 모드</div><div class="desc">초록 → 주황, 노랑 → 파랑으로 바꿔요</div></div>
         <label class="switch"><input type="checkbox" id="cbToggle" aria-label="색약 모드"><span class="track"></span></label>
       </div>
+      <div class="setting">
+        <div><div>효과음</div><div class="desc">자판마다 다른 음이 나요 🎹</div></div>
+        <label class="switch"><input type="checkbox" id="soundToggle" aria-label="효과음"><span class="track"></span></label>
+      </div>
       <p class="muted" style="margin-bottom:0">PC에서는 키보드(한/영 상관없이)로도 입력할 수 있어요.</p>
     </div>
   </div>
@@ -317,6 +359,13 @@
    ===================================================================== */
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4cPYQbKRxFQsTv7byzVnKwN6WdlRECyFvSkn39mcnNIywqTZ9W71P8nzw0SI8oEP_4QzBFaJbNQyN/pub?output=csv";
 const SITE_URL  = "https://sori-wordle.com";
+
+// 단어 제보용 구글 폼 주소를 따옴표 안에 붙여넣으세요. 비워두면 제보 버튼이 숨겨집니다.
+// 예) const SUGGEST_URL = "https://forms.gle/abcd1234";
+const SUGGEST_URL = "";
+
+// '1주년 축하' 업적을 받을 수 있는 마지막 날 (한국 시간)
+const ANNIV_END = "2026-12-31";
 
 // 1회차(#1) = 2025-01-01 (한국 시간). 바꾸지 마세요.
 const START = Date.UTC(2024, 11, 31, 15, 0, 0);
@@ -373,6 +422,50 @@ $("cbToggle").addEventListener("change", (e) => { setRaw("sori-cb", e.target.che
 applyTheme();
 
 /* =====================================================================
+   효과음 (파일 없이 브라우저에서 직접 합성)
+   ===================================================================== */
+let actx = null;
+const soundOn = () => getRaw("sori-sound") === "1";
+function tone(freq, dur = 0.08, type = "square", vol = 0.05, when = 0) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    const t = actx.currentTime + when, o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  } catch (e) {}
+}
+// 자판 위치마다 5음 음계를 배정 → 입력하면 멜로디처럼 들려요
+const PENTA = [0, 2, 4, 7, 9];
+function keyFreq(k) {
+  const all = ["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ","ㅐ","ㅔ","ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ"];
+  const i = Math.max(0, all.indexOf(k)) % 10;
+  return 523.25 * Math.pow(2, (PENTA[i % 5] + 12 * Math.floor(i / 5)) / 12);
+}
+const SFX = {
+  key: (k) => tone(keyFreq(k), 0.07, "square", 0.035),
+  del: () => tone(262, 0.05, "square", 0.03),
+  error: () => { tone(150, 0.12, "sawtooth", 0.05); tone(110, 0.16, "sawtooth", 0.05, 0.1); },
+  correct: () => tone(1047, 0.13, "triangle", 0.08),
+  present: () => tone(784, 0.13, "triangle", 0.07),
+  absent: () => tone(330, 0.1, "triangle", 0.05),
+  win: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.2, "square", 0.045, i * 0.1)),
+  lose: () => [392, 330, 262, 196].forEach((f, i) => tone(f, 0.28, "triangle", 0.07, i * 0.18)),
+  ach: () => [784, 988, 1175].forEach((f, i) => tone(f, 0.16, "triangle", 0.07, i * 0.08)),
+};
+function sfx(name, arg) { if (soundOn() && SFX[name]) SFX[name](arg); }
+$("soundToggle").checked = soundOn();
+$("soundToggle").addEventListener("change", (e) => { setRaw("sori-sound", e.target.checked ? "1" : "0"); if (e.target.checked) sfx("ach"); });
+
+/* 단어 제보 링크 */
+if (SUGGEST_URL) {
+  document.querySelectorAll(".suggest-link").forEach((a) => { a.href = SUGGEST_URL; a.classList.remove("hidden"); });
+  document.querySelectorAll(".suggest-line").forEach((p) => p.classList.remove("hidden"));
+}
+
+/* =====================================================================
    한글 분리 / 조합
    ===================================================================== */
 const 초성 = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
@@ -424,6 +517,28 @@ function 조합(seq) {
   return out;
 }
 const isValidJamoSequence = (seq) => 조합(seq) !== null;
+
+// 입력 중 미리보기용: 조합할 수 있는 데까지 글자로 만들고, 남은 자모는 그대로 표시
+function 미리보기(seq) {
+  let i = 0, out = "";
+  const n = seq.length;
+  while (i < n) {
+    let cho = seq[i], j = i + 1;
+    const t = 된소리쌍[cho + (seq[j] || '')]; if (t) { cho = t; j++; }
+    if (!is초성(cho) || !is중성(seq[j] || '')) { out += cho; i = j; continue; }
+    let jung = seq[j++];
+    const v = 모음합치[jung + (seq[j] || '')]; if (v) { jung = v; j++; }
+    let jong = "";
+    if (j < n) {
+      const f = 받침합치[seq[j] + (seq[j + 1] || '')];
+      if (f && (j + 2 >= n || canStartSyllable(seq[j + 2], seq[j + 3]))) { jong = f; j += 2; }
+      else if (is종성(seq[j]) && (j + 1 >= n || canStartSyllable(seq[j + 1], seq[j + 2]))) { jong = seq[j]; j += 1; }
+    }
+    out += String.fromCharCode(0xAC00 + 초성.indexOf(cho) * 588 + 중성.indexOf(jung) * 28 + 종성.indexOf(jong));
+    i = j;
+  }
+  return out;
+}
 
 /* =====================================================================
    데이터 저장 구조
@@ -483,15 +598,24 @@ async function loadWords() {
    게임 상태
    ===================================================================== */
 let curDay = null, game = null, answer = "", answerJamo = [];
-let currentGuess = [], revealing = false;
+let currentGuess = [], revealing = false, firstKeyTs = null;
 const bootDay = todayIndex();
+
+function updatePreview() {
+  const p = $("preview");
+  p.classList.remove("empty", "bad");
+  if (!game || game.s !== "play") { p.textContent = ""; return; }
+  if (!currentGuess.length) { p.classList.add("empty"); p.textContent = "입력한 자모가 여기서 글자로 보여요"; return; }
+  p.textContent = 미리보기(currentGuess);
+  if (currentGuess.length === answerJamo.length && !isValidJamoSequence(currentGuess)) p.classList.add("bad");
+}
 
 function startGame(d) {
   curDay = d;
   game = games[d] || { w: words[wordIndexForDay(d, words.length)], g: [], s: "play", m: d === todayIndex() ? "daily" : "archive" };
   answer = game.w;
   answerJamo = [...answer].flatMap(분리);
-  currentGuess = []; revealing = false;
+  currentGuess = []; revealing = false; firstKeyTs = null;
 
   $("boardMsg").classList.add("hidden");
   buildBoard();
@@ -500,6 +624,7 @@ function startGame(d) {
   updateKeyboardColors();
   updateModeBar();
   updateUnder();
+  updatePreview();
 }
 
 function evaluate(guess) {
@@ -551,7 +676,7 @@ function paintRow(r, guess, result, animate) {
     if (!animate || reduceMotion) { cell.classList.add(result[i]); continue; }
     setTimeout(() => {
       cell.classList.add("flip");
-      setTimeout(() => cell.classList.add(result[i]), 250);
+      setTimeout(() => { cell.classList.add(result[i]); sfx(result[i]); }, 250);
       setTimeout(() => cell.classList.remove("flip"), 500);
     }, i * step);
   }
@@ -607,9 +732,12 @@ function handleKey(k) {
     currentGuess.pop();
     const cell = row.children[currentGuess.length];
     cell.textContent = ""; cell.classList.remove("filled");
-    clearInvalid();
+    clearInvalid(); sfx("del"); updatePreview();
     return;
   }
+  if (currentGuess.length >= answerJamo.length) return;
+  if (!firstKeyTs) firstKeyTs = Date.now();
+  sfx("key", k);
   for (const j of expandJamo(k)) {
     if (currentGuess.length >= answerJamo.length) break;
     const cell = row.children[currentGuess.length];
@@ -618,6 +746,7 @@ function handleKey(k) {
     if (!reduceMotion) { cell.classList.remove("pop"); void cell.offsetWidth; cell.classList.add("pop"); }
   }
   clearInvalid();
+  updatePreview();
 }
 function clearInvalid() {
   for (const c of rowEl(game.g.length).children) c.classList.remove("invalid");
@@ -632,8 +761,8 @@ function shakeRow(markInvalid) {
 const PRAISE = ["천재!", "대단해요!", "훌륭해요!", "잘했어요!", "좋아요!", "휴, 아슬아슬!"];
 
 function submitGuess() {
-  if (currentGuess.length !== answerJamo.length) { shakeRow(false); toast("낱자를 모두 채워주세요"); return; }
-  if (!isValidJamoSequence(currentGuess)) { shakeRow(true); toast("올바른 글자 조합이 아니에요"); return; }
+  if (currentGuess.length !== answerJamo.length) { shakeRow(false); sfx("error"); toast("낱자를 모두 채워주세요"); return; }
+  if (!isValidJamoSequence(currentGuess)) { shakeRow(true); sfx("error"); toast("올바른 글자 조합이 아니에요"); return; }
 
   const guess = [...currentGuess];
   const r = game.g.length;
@@ -641,6 +770,7 @@ function submitGuess() {
   const win = guess.join("") === answerJamo.join("");
 
   // 1) 상태를 먼저 저장 (애니메이션 중 새로고침해도 안전)
+  if (!game.t0) game.t0 = firstKeyTs || Date.now();
   game.g.push(guess.join(""));
   if (win) game.s = "win";
   else if (game.g.length >= MAX_ROWS) game.s = "lose";
@@ -651,6 +781,15 @@ function submitGuess() {
   }
   saveGames();
   currentGuess = [];
+  updatePreview();
+
+  // 업적 판정에 쓸 정보
+  const finished = game.s !== "play";
+  const ev = finished ? {
+    type: "finish", win, tries: game.g.length, daily: game.m === "daily",
+    elapsed: Date.now() - game.t0,
+    noGray: win && game.g.every((gs) => !evaluate(gs.split("")).includes("absent")),
+  } : null;
 
   // 2) 화면 연출
   revealing = true;
@@ -660,12 +799,15 @@ function submitGuess() {
     updateKeyboardColors();
     if (win) {
       if (!reduceMotion) [...rowEl(r).children].forEach((c, i) => setTimeout(() => c.classList.add("bounce"), i * 80));
+      sfx("win");
       toast(PRAISE[r] || "정답!");
       setTimeout(openStats, 1400);
     } else if (game.s === "lose") {
+      sfx("lose");
       toast("정답은 「" + answer + "」", 2600);
       setTimeout(openStats, 1800);
     }
+    if (ev) setTimeout(() => checkAch(ev), 700);
     updateUnder();
   }, dur);
 }
@@ -718,7 +860,7 @@ $("resultBtn").onclick = openStats;
 /* =====================================================================
    팝업 공통
    ===================================================================== */
-const MODALS = ["helpModal", "statsModal", "archiveModal", "recapModal", "settingsModal"];
+const MODALS = ["helpModal", "statsModal", "archiveModal", "recapModal", "settingsModal", "achModal"];
 let lastFocus = null;
 function anyModalOpen() { return MODALS.some((id) => !$(id).classList.contains("hidden")); }
 function openModal(id) {
@@ -744,6 +886,7 @@ $("settingsBtn").onclick = () => openModal("settingsModal");
 $("statsBtn").onclick = openStats;
 $("archiveBtn").onclick = openArchive;
 $("recapBtn").onclick = openRecap;
+$("achBtn").onclick = openAch;
 
 /* =====================================================================
    통계 / 결과 팝업
@@ -835,10 +978,79 @@ async function shareResult() {
   if (!game || game.s === "play") return;
   const text = buildShareText();
   if (isTouch && navigator.share) {
-    try { await navigator.share({ text }); return; }
+    try { await navigator.share({ text }); checkAch({ type: "share" }); return; }
     catch (e) { if (e && e.name === "AbortError") return; }
   }
-  toast((await copyText(text)) ? "결과가 복사되었어요!" : "복사에 실패했어요");
+  const ok = await copyText(text);
+  toast(ok ? "결과가 복사되었어요!" : "복사에 실패했어요");
+  if (ok) checkAch({ type: "share" });
+}
+
+/* =====================================================================
+   업적
+   ===================================================================== */
+const kstHour = () => new Date(Date.now() + 9 * 3600000).getUTCHours();
+const isFinish = (c) => c.ev && c.ev.type === "finish";
+const ACH = [
+  { id: "first",  ic: "🎉", name: "첫 정답",       desc: "처음으로 정답 맞히기",            test: (c) => c.s.wins >= 1 || (isFinish(c) && c.ev.win) },
+  { id: "ace",    ic: "🎯", name: "한 방에!",      desc: "첫 번째 시도에 정답",             test: (c) => c.s.dist[0] >= 1 || (isFinish(c) && c.ev.win && c.ev.tries === 1) },
+  { id: "clutch", ic: "😮‍💨", name: "구사일생",      desc: "6번째 시도에 정답",               test: (c) => c.s.dist[5] >= 1 || (isFinish(c) && c.ev.win && c.ev.tries === 6) },
+  { id: "oops",   ic: "🫠", name: "그럴 수도 있지", desc: "처음으로 문제 놓치기",            test: (c) => c.s.played > c.s.wins || (isFinish(c) && !c.ev.win) },
+  { id: "st3",    ic: "🔥", name: "불붙었다",       desc: "3일 연속 정답",                   test: (c) => c.s.max >= 3 },
+  { id: "st7",    ic: "📅", name: "개근상",         desc: "7일 연속 정답",                   test: (c) => c.s.max >= 7 },
+  { id: "st30",   ic: "👑", name: "한 달 개근",     desc: "30일 연속 정답",                  test: (c) => c.s.max >= 30 },
+  { id: "p10",    ic: "🎧", name: "입문자",         desc: "오늘의 문제 10번 플레이",         test: (c) => c.s.played >= 10 },
+  { id: "p50",    ic: "🎚️", name: "단골",           desc: "오늘의 문제 50번 플레이",         test: (c) => c.s.played >= 50 },
+  { id: "p100",   ic: "🎛️", name: "고인물",         desc: "오늘의 문제 100번 플레이",        test: (c) => c.s.played >= 100 },
+  { id: "p365",   ic: "🏆", name: "365",            desc: "오늘의 문제 365번 플레이",        test: (c) => c.s.played >= 365 },
+  { id: "w100",   ic: "💯", name: "백승",           desc: "오늘의 문제 100번 정답",          test: (c) => c.s.wins >= 100 },
+  { id: "fast",   ic: "⚡", name: "번개손",         desc: "입력 시작 후 1분 안에 정답",       test: (c) => isFinish(c) && c.ev.win && c.ev.elapsed <= 60000 },
+  { id: "nogray", ic: "🌈", name: "헛방 없음",      desc: "회색 칸 하나 없이 정답",          test: (c) => isFinish(c) && c.ev.noGray && c.ev.tries > 1 },
+  { id: "owl",    ic: "🦉", name: "올빼미",         desc: "새벽 0~5시에 정답",               test: (c) => isFinish(c) && c.ev.win && kstHour() < 5 },
+  { id: "a10",    ic: "🗂️", name: "과거 여행",      desc: "지난 문제 10개 완료",             test: (c) => c.archDone >= 10 },
+  { id: "a100",   ic: "📚", name: "아카이브 탐험가", desc: "지난 문제 100개 완료",            test: (c) => c.archDone >= 100 },
+  { id: "aAll",   ic: "🧭", name: "완전 정복",      desc: "지난 문제 전부 완료",             test: (c) => c.archAll },
+  { id: "share",  ic: "📣", name: "자랑하기",       desc: "결과 공유하기",                   test: (c) => c.ev && c.ev.type === "share" },
+  { id: "anniv",  ic: "🎂", name: "1주년 축하",     desc: `${ANNIV_END.replace(/-/g, ".")}까지 한 판 완료`, test: (c) => isFinish(c) && dateOf(todayIndex()) <= ANNIV_END },
+  { id: "recap",  ic: "🖼️", name: "1년 돌아보기",   desc: "1주년 회고 카드 저장·공유",        test: (c) => c.ev && c.ev.type === "recap" },
+];
+
+function checkAch(ev, silent) {
+  const got = load("sori-ach", {});
+  const s = getStats(), today = todayIndex();
+  let archDone = 0, pastDone = 0;
+  for (const [d, g] of Object.entries(games)) {
+    if (g.s === "play") continue;
+    if (g.m === "archive") archDone++;
+    if (+d < today) pastDone++;
+  }
+  const c = { s, ev, archDone, archAll: today > 0 && pastDone >= today };
+  const newly = [];
+  ACH.forEach((a) => {
+    if (got[a.id]) return;
+    let ok = false; try { ok = !!a.test(c); } catch (e) {}
+    if (ok) { got[a.id] = Date.now(); newly.push(a); }
+  });
+  if (!newly.length) return;
+  save("sori-ach", got);
+  if (silent) return;
+  newly.forEach((a, i) => setTimeout(() => { toast(`🏅 업적 달성! ${a.ic} ${a.name}`, 2600); sfx("ach"); }, i * 900));
+}
+
+function openAch() {
+  const got = load("sori-ach", {});
+  const n = ACH.filter((a) => got[a.id]).length;
+  const day = (ts) => new Date(ts + 9 * 3600000).toISOString().slice(0, 10).replace(/-/g, ".");
+  $("achBody").innerHTML = `
+    <p class="muted" style="margin-top:0"><b>${n}</b> / ${ACH.length} 달성</p>
+    <div class="ach-progress"><div style="width:${n / ACH.length * 100}%"></div></div>
+    <div class="ach-grid">${ACH.map((a) => `
+      <div class="ach ${got[a.id] ? "" : "locked"}">
+        <div class="ic" aria-hidden="true">${a.ic}</div>
+        <div><div class="nm">${a.name}</div><div class="ds">${a.desc}${got[a.id] ? `<br>${day(got[a.id])} 달성` : ""}</div></div>
+      </div>`).join("")}
+    </div>`;
+  openModal("achModal");
 }
 
 /* =====================================================================
@@ -931,11 +1143,13 @@ async function drawRecap() {
 
   const lines = [];
   if (R.best) lines.push(`최고 기록  「${R.best.w}」  ${R.best.t}번 만에 정답`);
-  if (R.first) lines.push(`자주 쓴 첫 단어  「${R.first.w}」  ${R.first.n}회`);
-  if (lines.length < 2 && R.modeIdx >= 0) lines.push(`주로 ${R.modeIdx + 1}번째 시도에 정답!`);
-  if (!R.s.played) lines.push("아직 기록이 없어요 — 오늘 문제부터 시작!");
+  else if (R.first) lines.push(`자주 쓴 첫 단어  「${R.first.w}」  ${R.first.n}회`);
+  else if (R.modeIdx >= 0) lines.push(`주로 ${R.modeIdx + 1}번째 시도에 정답!`);
+  else if (!R.s.played) lines.push("아직 기록이 없어요 — 오늘 문제부터 시작!");
+  const achGot = load("sori-ach", {});
+  lines.push(`업적  ${ACH.filter((a) => achGot[a.id]).length} / ${ACH.length} 달성`);
 
-  const allText = "소리워들1주년기념나의기록플레이승률최대연속평균시도분포기준회번째에정답만자주쓴첫단어최고아직없어요오늘문제부터시작%-.0123456789·「」!—" + lines.join("") + SITE_URL;
+  const allText = "소리워들1주년기념나의기록플레이승률최대연속평균시도분포기준회번째에정답만자주쓴첫단어최고아직없어요오늘문제부터시작업적달성/%-.0123456789·「」!—" + lines.join("") + SITE_URL;
   try {
     await Promise.all([900, 700, 400].map((w) => document.fonts.load(F(w, 40), allText)));
   } catch (e) {}
@@ -1017,6 +1231,7 @@ function downloadRecap() {
   a.download = "soriwordle-1st-anniversary.png";
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  checkAch({ type: "recap" });
 }
 $("recapSave").onclick = downloadRecap;
 $("recapShare").onclick = async () => {
@@ -1024,7 +1239,7 @@ $("recapShare").onclick = async () => {
   const file = new File([recapBlob], "soriwordle-1st-anniversary.png", { type: "image/png" });
   const text = `나의 소리워들 1주년 기록 🎂\n${SITE_URL}`;
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], text }); return; }
+    try { await navigator.share({ files: [file], text }); checkAch({ type: "recap" }); return; }
     catch (e) { if (e && e.name === "AbortError") return; }
   }
   downloadRecap();
@@ -1045,6 +1260,7 @@ async function boot() {
     return;
   }
   startGame(todayIndex());
+  checkAch(null, true); // 기존 통계로 받을 수 있는 업적은 조용히 지급
 
   if (!getRaw("sori-help-seen")) {
     setRaw("sori-help-seen", "1");
