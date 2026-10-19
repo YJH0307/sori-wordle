@@ -7,6 +7,8 @@
   <meta name="description" content="소리MAD·음MAD 단어로 즐기는 하루 한 문제 워들 게임">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#121213" media="(prefers-color-scheme: dark)">
+  <meta name="google-adsense-account" content="ca-pub-7854966321787322">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7854966321787322" crossorigin="anonymous"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
@@ -60,7 +62,7 @@
     .preview.bad { color: var(--invalid); }
 
     /* 하단 */
-    .foot { margin-top: 22px; display: flex; gap: 14px; justify-content: center; font-size: 13px; }
+    .foot { margin-top: 22px; display: flex; gap: 6px 14px; justify-content: center; flex-wrap: wrap; font-size: 13px; }
     .foot a, .link-btn { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; background: none; border: none; cursor: pointer; font-size: 13px; padding: 4px; }
 
     /* 업적 */
@@ -258,6 +260,9 @@
 
   <footer class="foot">
     <a class="suggest-link hidden" href="#" target="_blank" rel="noopener">💡 단어 제보하기</a>
+    <a href="about.html">소개</a>
+    <a href="words.html">단어 사전</a>
+    <a href="privacy.html">개인정보처리방침</a>
   </footer>
 
   <!-- 업적 -->
@@ -574,10 +579,23 @@ function currentStreak(s) {
    단어 목록 불러오기
    ===================================================================== */
 let words = [];
+// 시트에 설명(B열)·링크(C열)를 추가해도 A열 단어만 정확히 읽도록 따옴표·줄바꿈을 처리하는 파서
+function parseCSV(text) {
+  const rows = []; let row = [], f = "", q = false;
+  text = text.replace(/^﻿/, "");
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ",") { row.push(f); f = ""; }
+    else if (ch === "\n" || ch === "\r") { if (ch === "\r" && text[i + 1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; }
+    else f += ch;
+  }
+  if (f !== "" || row.length) { row.push(f); rows.push(row); }
+  return rows;
+}
 function parseCSVFirstColumn(text) {
-  return text.replace(/^﻿/, "").split(/\r?\n/)
-    .map((line) => (line.split(",")[0] || "").replace(/^"|"$/g, "").trim())
-    .filter((w) => /^[가-힣]+$/.test(w));
+  return parseCSV(text).map((r) => (r[0] || "").trim()).filter((w) => /^[가-힣]+$/.test(w));
 }
 async function loadWords() {
   try {
@@ -959,7 +977,7 @@ function emojiFor(st) {
 }
 function buildShareText() {
   const tries = game.s === "win" ? game.g.length : "X";
-  let head = `#소리워들 #${curDay + 1} ${tries}/6`;
+  let head = `소리워들 #${curDay + 1} ${tries}/6`;
   if (game.m === "archive") head += " (지난 문제)";
   const rows = game.g.map((gs) => evaluate(gs.split("")).map(emojiFor).join("")).join("\n");
   return `${head}\n\n${rows}\n\n${SITE_URL}`;
